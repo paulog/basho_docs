@@ -6,6 +6,8 @@
 $headerColor : #616366;
 $textColor   : #515151;
 $linkBlue    : #2984a9;
+$orange      : #f99d33;
+$lightOrange : #fcc07f;
    
 $subtleGray  : #eaeaea;
 $lightGreen  : #a7c7bf;
@@ -89,6 +91,14 @@ $fadedGreen  : #6f8a86;
   display : inline-block;
 }
 
+.center-text {
+  text-align : center;
+}
+
+.clear {
+  clear : both;
+}
+
 /* =============================================================================
    Wireframe Structure
    ========================================================================== */
@@ -120,6 +130,10 @@ body {
     margin   : 0 0 0 222px;
     position : absolute;
     z-index  : 2;
+  }
+  
+  footer {
+    @include bgPattern('/images/layout/footer-bg.jpg');
   }
 }
 
@@ -193,6 +207,16 @@ div[role="main"] {
   
   h1 {
     font-size : 285%;
+    
+    &.extra-large {
+      font-size   : 350%;
+      line-height : 1.1;
+      
+      @media screen and (max-width: 810px) {
+        font-size   : 275%;
+        padding-top : .2em;
+      }
+    }
   }
   
   h2 {
@@ -219,7 +243,7 @@ div[role="main"] {
     }
   }
   
-  > header {
+  .masthead {
     padding    : 1.5em 1em 0 0;
     text-align : center;
     overflow   : visible;
@@ -243,7 +267,7 @@ div[role="main"] {
     
   }
     
-  > article {
+  .mainarticle {
     position : relative;
     padding  : 0 20px;
     
@@ -256,6 +280,105 @@ div[role="main"] {
     
       &.closed {
         background-position : left bottom;
+      }
+    }
+  }
+  
+  #select-project {
+    @include size(auto, 35em);
+    position  : relative;
+    min-width : 46em;
+    @media screen and (max-width: 1100px) {
+      min-width : 36em;
+    }
+    @media screen and (max-width: 925px) {
+      min-width : 30em;
+    }
+    @media screen and (max-width: 810px) {
+      text-align  : center;
+      min-width   : 0;
+      padding-top : 10px;
+    }
+    
+    .big-project-link {
+      @include allCorners(50%);
+      overflow : hidden;
+      position : absolute;
+      display  : block;
+      
+      &:hover {
+        @include boxShadow(0 0 20px $orange)
+      }
+      
+      &#riak {
+        @include size(317px, 317px);
+        top  : 3em;
+        left : 9em;
+        @media screen and (max-width: 1100px) {
+          @include size(260px, 260px);
+          top  : 2em;
+          left : 8em;
+        }
+        @media screen and (max-width: 925px) {
+          @include size(220px, 220px);
+          top  : 2em;
+          left : 6em;
+        }
+        @media screen and (max-width: 810px) {
+          @include size(125px, 125px);
+          position : static;
+          display  : inline-block;
+          margin   : 5px;
+        }
+      }
+      
+      &#riakee {
+        @include size(230px, 230px);
+        top  : 19em;
+        left : 1em;
+        @media screen and (max-width: 1100px) {
+          @include size(180px, 180px);
+          top  : 14em;
+          left : 1em;
+        }
+        @media screen and (max-width: 925px) {
+          @include size(140px, 140px);
+          top  : 13em;
+          left : 0;
+        }
+        @media screen and (max-width: 810px) {
+          @include size(125px, 125px);
+          position : static;
+          display  : inline-block;
+          margin   : 5px;
+        }
+      }
+      
+      &#riakcs {
+        @include size(274px, 274px);
+        top  : 11em;
+        left : 28em;
+        @media screen and (max-width: 1100px) {
+          @include size(225px, 225px);
+          top  : 8em;
+          left : 23em;
+        }
+        @media screen and (max-width: 925px) {
+          @include size(185px, 185px);
+          top  : 8em;
+          left : 19em;
+        }
+        @media screen and (max-width: 810px) {
+          @include size(125px, 125px);
+          position : static;
+          display  : inline-block;
+          margin   : 5px;
+        }
+      }
+      
+      img {
+        @extend .block;
+        @include size(100%, 100%);
       }
     }
   }

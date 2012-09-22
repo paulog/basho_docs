@@ -1,0 +1,23 @@
+aside.sidebar {
+  background: url("/images/layout/nav-bg.jpg") left top repeat #4F4F50;
+  color:white;
+  padding:1em;
+  border-radius: 8px;
+  -webkit-box-shadow: inset 0px 0 25px #333;
+  a {
+    color:#4BACD3;
+  }
+  h3 {
+    color:#EAEAEA;
+    text-shadow: 0 2px 2px black;
+    font-family: 'titillium', verdana, arial, sans-serif;
+    font-weight: bold;
+    font-size:120%;
+  }
+  float:right;
+  width:50%;
+  margin-left: 0.5em;
+}
+blockquote {
+  font-style:italic;
+}

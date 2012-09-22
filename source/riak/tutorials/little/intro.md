@@ -18,43 +18,32 @@ Riak is an open-source, distributed key/value database for high availability, fa
 
 <!-- Data has become more available, more valuable in the aggregate, and easier to access. -->
 
+In an increasingly interconnected world, major shifts have occurred in data management. The web and connected devices have spurred an explosion of both data collection and access unseen in the history of the world. The amount of data being stored and managed has grown at a staggering rate, and in parallel, more people than ever require fast and reliable access to this data. This is generally called *[[Big Data|A Little Riak Book: Intro#big-data]]*.
 
-In a more interconnected world, some major shifts have occurred in data management. The web and mobile devices have spurred an explosion in collecting and accessing data unseen in the history of the world. And with the increase in interconnected data such as social networks.
+<aside id="big-data" class="sidebar"><h3>So What is Big Data?</h3>
 
-In addition, the improvements in prices, technology improvements, and virtualization have put vast amounts of computing power and storage within the grasp of most everyone, spuring data architectures based on clusters of commodity hardware.
+There's a lot of discussion around what constitutes <em>Big Data</em>.
 
-All of these considerations have lead to an abundance of highly interconnected data, requiring new and novel ways to manage it. The ability to both store and quickly access this data, in a predictable and low latency manner, has given rise to a new class of databases, loosely called NoSQL databases.
+I have a 6 Terabyte RAID in my house to store videos and other backups. Does that count? On the other hand, CERN grabbed about [200 Petabytes](http://www.itbusinessedge.com/cm/blogs/lawson/the-big-data-software-problem-behind-cerns-higgs-boson-hunt/?cs=50736) looking for the Higgs boson.
 
-
-No longer is Big Data the exclusive domain of a handful of companies with the expertise and funding to capture and process large amounts of data. Now anyone can handle data. In fact, a growing number of customers are expecting it.
-
-the amount of data being collected and managed has also increased at a staggering rate. 
-
-Many databases today claiming to work for *Big Data* were either retrofited to cluster, or begin easily on small-scales with increasingly complex configuration and operational requirements as your data swells. Riak was designed from the ground-up based on the real-world proven Dynamo paper.
-
-<aside class="sidebar">
-<h3>What is Big Data?</h3>
-There's a lot of discussion around what constitutes <em>Big Data</em>. I have a 6 Terabyte RAID in my house to store videos and other backups. Does that count? On the other hand, CERN grabbed about [200 Petabytes](http://www.itbusinessedge.com/cm/blogs/lawson/the-big-data-software-problem-behind-cerns-higgs-boson-hunt/?cs=50736) looking for the Higgs boson.
-
-It's a hard number to pin down, because Big Data is a personal figure. What's big to one might be small to another. Ths is why many definitions don't refer to byte count at all, but instead about relative potentials. A reasonable definition of Big Data is [provided by Gartner](http://www.gartner.com/DisplayDocument?ref=clientFriendlyUrl&id=2057415).
+It's a hard number to pin down, because Big Data is a personal figure. What's big to one might be small to another. Ths is why many definitions don't refer to byte count at all, but instead about relative potentials. A reasonable, albeit wordy, [definition of Big Data](http://www.gartner.com/DisplayDocument?ref=clientFriendlyUrl&id=2057415) is given by Gartner.
 
 <blockquote>Big Data are high-volume, high-velocity, and/or high-variety information assets that require new forms of processing to enable enhanced decision making, insight discovery and process optimization.</blockquote>
 </aside>
 
-Storage is easy and cheap. But large amounts of data that is highly available is a different story.
+The sweet-spot of Riak is high-volume (data that's available to read and write when you need it), high-velocity (easily responds to growth), and high-variety information assets (you can store any type of data as a value).
 
-The focus of Riak is high-volume (data that's available to read and write when you need it), high-velocity (easily responds to growth), and high-variety information assets (you can store any type of data as a value). It's built to handle Big Data, whatever that means for you.
+Riak was built as a solution to real Big Data problems, based on the [[Amazon Dynamo|Dynamo]] design. But Riak was also built to be easy to operate and remain highly available at all times, while respecting the reality of consistency tradeoffs at scale.
 
-Riak is built to be highly available, meaning that it responds to requests quickly at very large scales, even if your application is storing and serving terabytes of data a day. Riak was designed for applications where every moment of downtime costs money.
+Riak is built to be highly available, meaning that it responds to requests quickly at very large scales, even if your application is storing and serving terabytes of data a day.
 
-Riak has been used in production for three years, and is used by Github, Comcast, Voxer, Disqus and many more.
+So do you need Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost your system money. Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
 
-### History
-
-Riak was created in X
+Riak has been used in production for years before it was spun off into it's own open-source project in 2009. It's currently used by Github, Comcast, Voxer, Disqus and others, with the larger system storing hundreds of TBs of data, and handling several GBs per node daily.
 
 ## Installing
 
 This is not an "install and follow along" guide. This is a "read and comprehend" guide. Don't feel compelled to install before continuing to read.
 
 ## Launching
+

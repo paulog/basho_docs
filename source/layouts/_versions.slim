@@ -1,7 +1,9 @@
-- unless data.page.versions == false
-  - project = data.page.project || 'riak'
+- project = data.page.project || 'riak'
+- bar = version_bar(project)
+
+- unless bar.length == 0 || data.page.versions == false
   ol.versions
-    - version_bar(project).each do |versions|
+    - bar.each do |versions|
       - version = versions.first
       li(class=(is_version?(project, version) ? 'current' : ''))
         - # HACK to deal with the riak*-index name change
