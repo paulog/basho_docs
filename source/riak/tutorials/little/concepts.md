@@ -9,15 +9,19 @@ audience: beginner
 keywords: []
 ---
 
-Before we dig into the details of using Riak, we need a bit of front matter.
+## The Landscape
 
-## Database Models
+Before we understand where Riak sits in the spectrum of databases, it's good to have a little front matter. The existence of databases like Riak is the culmination of two things: accessible technology spuring more data requirements, and a gap in the existing database market.
 
-As we've seen steady improvements in technology, networks, virtualization, and reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world, this has spured an exponential growth of data, and a demand for more predictability and speed by increasingly savy users.
+First, as we've seen steady improvements in technology along with reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world caused by the web and shrinking, cheaper computers (like smartphones), this has spured an exponential growth of data, and a demand for more predictability and speed by increasingly savy users.
 
-Over the years, relational database management systems (RDBMS) had become fine tuned for certain use-cases like business intelligence, and technically tuned for things optimizing disk access, and squeezing performance out of single servers. In response to a changing world, and as cracks of in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs. These new databases are loosely called NoSQL, and Riak is of this ilk.
+Second, relational database management systems (RDBMS) had become fine tuned over the years for a set of use-cases like business intelligence. They were also technically tuned for things optimizing disk access, and squeezing performance out of single larger servers. Cheap commodity (or virtualized) servers made horizontal growth and increasingly attractive alternative for more organizations. As cracks in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs.
 
-Modern database can be loosely grouped into the way they represent data. Althought I'm presenting 5 major types, these lines are often blurred--you can use some key/value stores as a document store, you can use a relational database to just store key/value data.
+These new databases are loosely called NoSQL, and Riak is of its ilk.
+
+### Database Models
+
+Modern database can be loosely grouped into the way they represent data. Although I'm presenting 5 major types (the last 4 are considered NoSQL models), these lines are often blurred--you can use some key/value stores as a document store, you can use a relational database to just store key/value data.
 
   1. **Relational**. Traditional databases usually use SQL to model and query data.
     They are most useful for data which can be stored in a highly structured schema, yet
@@ -41,18 +45,53 @@ Modern database can be loosely grouped into the way they represent data. Althoug
     not unlike an RDBMS schema.
     
     Examples: *[[HBase|Riak Compared to HBase]]*, *[[Cassandra|Riak Compared to Cassandra]]*, *BigTable*
-  5. **Key/Value**. Key/Value, or KV stores, function like hashtables, where values are stored
-    and accessed by an immutable key. They range from single-serve varieties like Memcaches used
-    for high-speed caching, to multi-datacenter distributed systems like [[Riak Enterprise]].
+  5. **Key/Value**. Key/Value, or KV stores, are conceptually like hashtables, where values are stored
+    and accessed by an immutable key. They range from single-server varieties like
+    [memcached](http://memcached.org/) used for high-speed caching, to multi-datacenter
+    distributed systems like [[Riak Enterprise]].
     
     Examples: *[[Riak]]*, *Redis*, *Voldemort*
 
+## Riak Components
 
-#### Keys
+Riak is a Key/Value database, built from the ground up to safely distribute data across a cluster of physical servers (called nodes). That cluster is called a Ring--we'll cover why later.
 
-#### Values
+For now, we'll only consider the parts required to use Riak. Riak functions similar to a hashtable. Depending on your background, you may instead call it a map, or dictionary, or object. But the concept is the same: you store a value with an immutable key, and retrieve it later.
 
-#### Buckets
+<!-- replace with an image -->
+
+If Riak were a variable that functioned as a hashtable, you might set the value of your favorite food like this.
+
+```javascript
+hashtable["favorite"] = "pizza"
+```
+
+And retrieve the value `"pizza"` by using the same key.
+
+```javascript
+food = hashtable["favorite"]
+```
+
+One day you burn the roof of your mouth. So you update your favorite food to `"cold pizza"`.
+
+```javascript
+hashtable["favorite"] = "cold pizza"
+```
+
+Successive requests will now return `"cold pizza"`.
+
+That's the very basic idea of a key/value store like Riak.
+
+### Buckets
+
+Another aspect of Riak is a *bucket*. Sometimes you must group together multiple keys into logical categories, where identical keys will not overlap. These groupings are called buckets.
+
+```javascript
+edibles["favorite"] = "pizza"
+animals["favorite"] = "red panda"
+```
+
+Of course, you could have just named your keys `edible_favorite` and `animal_favorite`, but this allows for easier keys, and has other added benefits that I'll outline later.
 
 ## Replication and Sharding
 
