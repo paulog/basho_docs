@@ -14,7 +14,11 @@ head(class=data.page.document)
   meta content="project" name=(data.page.project || 'riak')
   meta content="version" name=current_version
   title== data.page.title || "Riak Documents"
-  == stylesheet_link_tag "boilerplate", "fonts", "common", "book"
+  == stylesheet_link_tag "boilerplate"
+  == stylesheet_link_tag "fonts"
+  == stylesheet_link_tag "common"
+  == stylesheet_link_tag "book"
+  == javascript_include_tag "all"
 body class=(data.page.project || 'riak')
   == partial "layouts/primary"
   div(role="main")
@@ -36,6 +40,5 @@ body class=(data.page.project || 'riak')
         == partial "layouts/keywords"
     - unless !data.page.title
       == partial "layouts/secondary"
-  == partial "layouts/footer"
-  == javascript_include_tag "all"
+    == partial "layouts/footer"
 | </html>
