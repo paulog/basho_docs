@@ -99,6 +99,23 @@ $fadedGreen  : #6f8a86;
   clear : both;
 }
 
+.clear-left {
+  clear : left;
+}
+
+.clear-right {
+  clear : right;
+}
+
+.green-link {
+  display         : block;
+  color           : darken(saturate($fadedGreen, 25%), 18%);
+  padding         : 2px 0 0 0;
+  text-decoration : none;
+  text-align      : center;
+  width           : 4.2em;
+}
+
 /* =============================================================================
    Wireframe Structure
    ========================================================================== */
@@ -143,8 +160,12 @@ body {
 
 
 /* =============================================================================
-   Element Styles
+   Main Element Styles
    ========================================================================== */
+
+body {
+  font-size : 90%;
+}
 
 #nav-container {
   @extend .sans;
@@ -166,6 +187,10 @@ body {
       background        : rgba(255, 255, 255, .12);
       border-left-color : $lightGreen;
     }
+  }
+  
+  .current a {
+    border-left : 4px solid $orange;
   }
   
   h3, h4 {
@@ -209,6 +234,10 @@ div[role="main"] {
     @extend .sans-bold;
   }
   
+  p, li, footer {
+    line-height : 1.5;
+  }
+  
   h1 {
     font-size : 285%;
     
@@ -221,20 +250,36 @@ div[role="main"] {
         padding-top : .2em;
       }
     }
+    
+    a {
+      color : $headerColor;
+    }
   }
   
   h2 {
     @extend .sans;
     font-size : 200%;
+    
+    a {
+      color : $headerColor;
+    }
   }
   
   h3 {
     @extend .sans;
     font-size : 175%;
+    
+    a {
+      color : $headerColor;
+    }
   }
   
   h4 {
     font-size : 125%;
+    
+    a {
+      color : $headerColor;
+    }
   }
   
   a {
@@ -243,7 +288,7 @@ div[role="main"] {
     white-space     : nowrap;
     
     &:hover {
-      color : lighten($linkBlue, 15%);
+      color : lighten($orange, 5%);
     }
   }
   
@@ -269,6 +314,32 @@ div[role="main"] {
       padding : 1.5em 0 0 .5em;
     }
     
+    #top-nav {
+      float      : right;
+      text-align : center;
+      
+      a {
+        @extend .green-link;
+        @extend .block;
+        @include bgPattern('/images/layout/light-green-bg.jpg');
+        @include size(100%, auto);
+        padding : 0 5px; 
+        margin  : 0 0 1px 0;
+        border  : 1px solid darken($lightGreen, 10%);
+        text-decoration : none;
+        
+        &:hover {
+          background : $orange;
+          border     : 1px solid darken($orange, 15%);
+          color      : #fff;
+        }
+        
+        &:first-child {
+          margin-top : 10px;
+        }
+      }
+    }
+    
   }
     
   .mainarticle {
@@ -288,8 +359,38 @@ div[role="main"] {
     }
   }
   
+  aside.secondary {
+    @include bgPattern('/images/layout/nav-bg.jpg', #4f4f50);
+    @include allCorners();
+    @include boxShadow(inset 0 0 25px #333);
+    float   : right;
+    margin  : 10px 0 15px 15px;
+    padding : 25px;
+    color   : #f1f1f1;
+    border-bottom : 1px solid #f1f1f1;
+    
+    h1, h2, h3, h4, h5, h6 {
+      @extend .text-shadow;
+      color : #f1f1f1;
+    }
+    
+    ul {
+      margin     : 5px 0 15px 0;
+      list-style : square;
+      padding    : 0 0 0 2em;
+    }
+    
+    a {
+      color : lighten($linkBlue, 20%);
+      &:hover {
+        color : lighten($orange, 5%);
+      }
+    }
+  }
+  
   #select-project {
     @include size(auto, 35em);
+    font-size : 110%;
     position  : relative;
     min-width : 46em;
     max-width : 46em;
@@ -443,6 +544,91 @@ div[role="main"] {
 }
 
 /* =============================================================================
+   Code Styles
+   ========================================================================== */
+
+div[role=main] {
+  
+  code {
+    font-size   : 90%;
+    background  : #dfdfdf;
+    border      : 1px solid #c9c9c9;
+    white-space : nowrap;
+  }
+
+  .docs {
+    padding   : 0 25px 0 0;
+    min-width : 20em;
+    
+    h1 {
+      font-size   : 225%;
+      border-top  : 1px solid #c0c0c0;
+      padding-top : .5em;
+      line-height : 1.2;
+    }
+    
+    h2 {
+      font-size      : 150%;
+      line-height    : 1.2;
+      padding-bottom : .5em;
+    }
+    
+    h3 {
+      @extend .sans-bold;
+      font-size   : 115%;
+      line-height : 1.2;
+    }
+    
+    ul, ol {
+      padding-left : 25px;
+    }
+    
+    li {
+      padding-bottom : 10px;
+    }
+  }
+  
+  .code {
+    @include bgPattern('/images/layout/code-bg.jpg');
+    @include allCorners();
+    @include boxShadow(inset 0 1px 4px #aeb9b6);
+    font-size     : 80%;
+    padding       : 15px;
+    border-bottom : 1px solid #f0f0f0;
+    margin-bottom : 20px;
+  }
+  
+  .docco .code {
+    border-bottom : 0;
+    margin-bottom : 0;
+    padding       : 0 25px;
+  }
+  
+  .docco {
+    .code {
+      @include allCorners(0px);
+      @include boxShadow(none);
+      border-left    : 1px solid #d8d9da;
+      border-right   : 1px solid #d8d9da;
+    }
+
+    tr:first-child .code {
+      @include corner(left, top);
+      @include corner(right, top);
+      border-top : 1px solid #cacaca;
+    }
+
+    tr:last-child .code {
+      @include corner(left, bottom);
+      @include corner(right, bottom);
+      border-bottom : 1px solid #f0f0f0;
+    }
+  }
+}
+   
+   
+
+/* =============================================================================
    FAQ
    ========================================================================== */
    
@@ -476,11 +662,9 @@ img {
 article {
   nav.tutorial {
     ul {
-      width:100%;
-      float:left;
+
       li {
-        float:left;
-        padding:5px;
+        padding:5px 0;
         border-right: 1px solid black;
         &:last-child {
           border-right: 0px;
@@ -505,6 +689,7 @@ code {
   border-radius: 4px;
 }
 
+/*
 .code {
   pre {
     overflow-x:auto;
@@ -526,6 +711,7 @@ code {
   }
   // overflow-x: scroll;
 }
+*/
 
 ol.versions,
 ol.versions li {
@@ -533,24 +719,52 @@ ol.versions li {
   list-style-image: none;
   margin: 0;
   padding: 0;
-  float:left;
 }
 ol.versions {
-  width: 100%;
-  clear:both;
-  margin-bottom:1em;
+  clear         : left;
+  margin-bottom : 1em;
+  
   li {
-    font-size:8pt;
-    padding:1px;
-    border:1px solid #ccc;
-    border-right:0px;
-    &:last-child {
-      border-right:1px solid #ccc;
+    @include bgPattern('/images/layout/light-green-bg.jpg');
+    border        : 1px solid darken($lightGreen, 10%);
+    display       : inline-block;
+    font-size     : 8pt;
+    margin-right  : 1px;
+    margin-bottom : 1px;
+    
+    &:hover {
+      background : $orange;
+      border     : 1px solid darken($orange, 15%);
     }
+    
+    &:first-child {
+      @include corner(left, top);
+      @include corner(left, bottom);
+    }
+    
+    &:last-child {
+      @include corner(right, top);
+      @include corner(right, bottom);
+    }
+    
     &.current {
-      background-color:blue;
+      background : $orange;
+      border     : 1px solid darken($orange, 15%);
+      
       a {
-        color:white;
+        color : #fff;
+        
+        &:hover {
+          color : #fff;
+        }
+      }
+    }
+    
+    a {
+      @extend .green-link;
+      
+      &:hover {
+        color : #fff;
       }
     }
   }
@@ -562,10 +776,3 @@ ul.depth-3 {
   display:none;
 }
 */
-
-.active {
-  background-color:#FDD;
-}
-.current {
-  background-color:red;
-}
