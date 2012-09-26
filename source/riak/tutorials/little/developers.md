@@ -21,6 +21,8 @@ Riak is, quite frankly, one of the simplest NoSQL databases
 
 We've already seen direct key-vaue lookups. The truth is, it's a pretty powerful mechanism that spans a spectrum of usecases. However, sometimes we need to lookup data by values, rather than keys. Sometimes we need to perform some calculation
 
+### Quorum
+
 ### Secondary Indexing (2i)
 
 ### Search (Yokozuna)
