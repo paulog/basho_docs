@@ -9,9 +9,11 @@ audience: beginner
 keywords: []
 ---
 
-Up to this point we've talked vaguely about "clusters" and a "ring of nodes".
+Riak is one of the simplest NoSQL databases to operate. In some ways, it's downright mundane. Want more servers? Add them. A server crash at night? Sleep until morning and fix it.
 
 ## The Ring
+
+Up to this point we've talked conceptually about "clusters" and a the "Ring".
 
 ## Clusters
 

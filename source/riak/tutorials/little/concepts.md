@@ -9,15 +9,15 @@ audience: beginner
 keywords: []
 ---
 
-When I first encountered Riak, I found a few concepts daunting. But understanding these theories made me appreciate the difficulty of the distributed database problem space, and the elegant solutions that Riak provides.
+When I first encountered Riak, I found a few concepts daunting. But understanding these theories made me appreciate the difficulty of the distributed database problem space, and the elegant solutions provided by Riak.
 
 ## The Landscape
 
 Before we understand where Riak sits in the spectrum of databases, it's good to have a little front matter. The existence of databases like Riak is the culmination of two things: accessible technology spuring more data requirements, and a gap in the existing database market.
 
-First, as we've seen steady improvements in technology along with reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world caused by the web and shrinking, cheaper computers (like smartphones), this has spured an exponential growth of data, and a demand for more predictability and speed by increasingly savy users.
+First, as we've seen steady improvements in technology along with reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world caused by the web and shrinking, cheaper computers (like smartphones), this has spured an exponential growth of data, and a demand for more predictability and speed by savvier users. In short, more data is being created on the front-end, while more data is being managed on the backend.
 
-Second, relational database management systems (RDBMS) had become fine tuned over the years for a set of use-cases like business intelligence. They were also technically tuned for things optimizing disk access, and squeezing performance out of single larger servers. Cheap commodity (or virtualized) servers made horizontal growth and increasingly attractive alternative for more organizations. As cracks in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs.
+Second, relational database management systems (RDBMS) had become fine tuned over the years for a set of use-cases like business intelligence. They were also technically tuned for things like optimizing disk access, and squeezing performance out of single larger servers, but cheap commodity (or virtualized) servers made horizontal growth increasingly attractive. As cracks in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs.
 
 These new databases are loosely called NoSQL, and Riak is of its ilk.
 
@@ -36,7 +36,7 @@ This limitation changes how you model data. Relational normalization (organizing
 
   1. **Relational**. Traditional databases usually use SQL to model and query data.
     They are most useful for data which can be stored in a highly structured schema, yet
-    requires query flexibility. Scaling a relational database (RDBMS) traditionally
+    require query flexibility. Scaling a relational database (RDBMS) traditionally
     occurs by more powerful hardware (vertical growth).
     
     Examples: *PostgreSQL*, *MySQL*, *Oracle*
@@ -52,7 +52,7 @@ This limitation changes how you model data. Relational normalization (organizing
     Examples: *[[CouchDB|Riak Compared to CouchDB]]*, *[[MongoDB|Riak Compared to MongoDB]]*, *[[Couchbase|Riak Compared to Couchbase]]*
   4. **Columnar**. Popularized by Google's BigTable, this form of database exists to
     scale across multiple servers, and groups like data into column families. Column values
-    can be individually versioned and managed, though families are generally defined in advance,
+    can be individually versioned and managed, though families are defined in advance,
     not unlike an RDBMS schema.
     
     Examples: *[[HBase|Riak Compared to HBase]]*, *[[Cassandra|Riak Compared to Cassandra]]*, *BigTable*
@@ -65,7 +65,7 @@ This limitation changes how you model data. Relational normalization (organizing
 
 ## Riak Components
 
-Riak is a Key/Value (or KV) database, built from the ground up to safely distribute data across a cluster of physical servers (called nodes). A cluster is also called a Ring---we'll cover why later.
+Riak is a Key/Value (KV) database, built from the ground up to safely distribute data across a cluster of physical servers (called nodes). A Riak cluster is also known as a Ring---we'll cover why later.
 
 For now, we'll only consider the parts required to use Riak. Riak functions similar to a hashtable. Depending on your background, you may instead call it a map, or dictionary, or object. But the concept is the same: you store a value with an immutable key, and retrieve it later.
 
@@ -82,10 +82,10 @@ hashtable["favorite"] = "pizza"
 And retrieve the *value* `pizza` by using the same key as before.
 
 ```javascript
-food = hashtable["favorite"]
+food = hashtable["favorite"]    // food == "pizza"
 ```
 
-One day you burn the roof of your mouth. So you update your favorite food to `cold pizza`.
+One day you burn the roof of your mouth. In anger, you update your favorite food to `cold pizza`.
 
 ```javascript
 hashtable["favorite"] = "cold pizza"
@@ -93,7 +93,7 @@ hashtable["favorite"] = "cold pizza"
 
 Successive requests for `favorite` will now return `cold pizza`.
 
-For convenience, we call a key/value pair an *object*. Together our "favorite/pizza" pair is refered to as the "`favorite` object", rather than saying the more verbose "`favorite` key and its value".
+For convenience, we call a key/value pair an *object*. Together our `favorite`/`pizza` pair is refered to as the "`favorite` object", rather than the more verbose "`favorite` key and its value".
 
 <!-- That's the most basic idea of using the Riak KV store. -->
 
@@ -110,7 +110,7 @@ edibles["favorite"] = "pizza"
 animals["favorite"] = "red panda"
 ```
 
-You could have just named your keys `edible_favorite` and `animal_favorite`, but this allows for cleaner key naming, and has other added benefits that I'll outline later.
+You could have just named your keys `edible_favorite` and `animal_favorite`, but buckets allow for cleaner key naming, and has other added benefits that I'll outline later.
 
 Buckets are so useful in Riak that all keys must belong to a bucket. There is no global namespace.
 
@@ -124,7 +124,7 @@ Distributing data across several nodes is how Riak is able to remain highly avai
 
 The obvious benefit of replication is that if one node goes down, nodes that contain replicated data remain available to serve requests. In other words, the system remains highly available.
 
-For example, imagine you have a list of country keys, whose values contain those countries' capitals. If all you wanted to do was replicate that data to 2 servers, you would have 2 duplicate databases.
+For example, imagine you have a list of country keys, whose values contain those countries' capitals. If all you do is replicate that data to 2 servers, you would have 2 duplicate databases.
 
 ##### Node A
 
@@ -150,16 +150,16 @@ For example, imagine you have a list of country keys, whose values contain those
 "Zimbabwe":    "Harare"
 ```
 
-The downside with replication is that you are multiplying the amount of storeage required for every duplicate. There is also some network overhead with this approach, since values must also be routed to all replicated nodes on write. But there is one more insidious problem with this approach which we will cover shortly.
+The downside with replication is that you are multiplying the amount of storeage required for every duplicate. There is also some network overhead with this approach, since values must also be routed to all replicated nodes on write. But there is a more insidious problem with this approach which we will cover shortly.
 
 
 ### Partitions
 
-A **partition** is how to divide a set of keys onto seperate physical servers. Rather than dulicate values, we instead pick one server to exclusively host a range of keys, and the other servers to host non-overlaping ranges.
+A **partition** is how we divide a set of keys onto seperate physical servers. Rather than duplicate values, we pick one server to exclusively host a range of keys, and the other servers to host remaining non-overlaping ranges.
 
 With partitioning, our total capacity can increase without any big expensive hardware, just lots of cheap commodity servers. If we decided to partition our database into 1000 parts across 1000 nodes, we have (hypothetically) reduced the amount of work any particular server must do to 1/1000th.
 
-For example, if we partition our countries into 2 servers, we might put all countries beginning with the letter A-N into Node A, and O-Z into Node B.
+For example, if we partition our countries into 2 servers, we might put all countries beginning with letters A-N into Node A, and O-Z into Node B.
 
 ##### Node A
 
@@ -181,11 +181,12 @@ For example, if we partition our countries into 2 servers, we might put all coun
 "Zimbabwe":    "Harare"
 ```
 
-There is a bit of overhead the parition approach. Some service must keep track of what range of values live on which node. A requesting application must know that a request for Spain will be routed to Node B, since Node A will have no matching result.
+There is a bit of overhead the parition approach. Some service must keep track of what range of values live on which node. A requesting application must know that the key `Spain` will be routed to Node B, not Node A.
 
 There's also another downside. Unlike replication, simple partitioning of data actually *decreases* uptime. If one node goes down, that entire partition of data is unavailable. This is why Riak combines both replication and partitioning.
 
 <!-- (diagram the various server setups) -->
+[IMAGE]
 
 ### Replication+Partitions
 
@@ -305,7 +306,9 @@ The same goes for reading. To ensure you have the most recent value, you can rea
 
 In general terms, the N/R/W values are Riak's way of allowing you to trade less consistency for more availability.
 
-(create a diagram explaining CAP, with the various types of server setups)
+[IMAGE]
+
+<!-- (create a diagram explaining CAP, with the various types of server setups) -->
 
 ### Vector-Clock
 
@@ -363,8 +366,18 @@ The Riak mechanism uses internal hashing and system clocks to stop unbounded vcl
 
 ### Riak and ACID
 
-Unlike single node databases like Neo4j or PostgreSQL, Riak does not satisfy ACID transactions. Locking across multiple servers would kill write availability, and indeed a larger concern, increase latency. Where as ACID transactions promise Atomicity, Consistency, Isolation, and Durability---Riak and other NoSQL databases follow BASE, or Basically Available, Soft state, Eventual consistency.
+Unlike single node databases like Neo4j or PostgreSQL, Riak does not support ACID transactions. Locking across multiple servers would kill write availability, and equally concerning, increase latency. While ACID transactions promise Atomicity, Consistency, Isolation, and Durability---Riak and other NoSQL databases follow BASE, or Basically Available, Soft state, Eventually consistent.
 
+The BASE acronym was meant as shorthand for the goals of non-ACID transacional databases like Riak. It is an acceptance that distribution is never perfect (basically available), all data is in flux (soft state), and that true consistency is generally untennable (eventually consistent).
 
+Be wary if anyone has promised distributed ACID transactions, it's usually couched in some other language or caveats like *row transactions*, or *per node transactions*, which basically mean *not transactional* in terms you would normally use to define it.
 
-Be wary of anyone who promises to have solved CAP, or that distributed data storage is not a hard problem. As your server count grows---especially as you introduce multiple datacenters---the odds of partitions and node failures drastically increase. My best advice is to design for it.
+As your server count grows---especially as you introduce multiple datacenters---the odds of partitions and node failures drastically increase. My best advice is to design for it.
+
+## Wrapup
+
+Riak is designed to bestow a range of real-world benefits, but equally, to handle the fallout of weidling such power. Consistent hashing and vnodes are an elegant solution to horizontally scaling across servers. N/R/W allows you to dance with the CAP theorem by fine-tuning against its constraints. And vector clocks allow another step closer to true consistency by allowing you to manage conflicts that will occur at high load.
+
+We'll cover other concepts as needed, like the gossip protocol or read-repair.
+
+Next we'll go through Riak as a user. We'll check out lookups, take advantage of write hooks, and alternative query options like secondary indexing, search, and mapreduce.
