@@ -23,17 +23,11 @@ next: ["Introduction", "intro.html"]
   1. [[Lookup|A Little Riak Book: Developers#Lookup]]
   1. [[Hooks|A Little Riak Book: Developers#Hooks]]
   1. [[Querying|A Little Riak Book: Developers#Querying]]
-     1. Secondary Indexing (2i)
-     1. Search (Yokozuna)
-     1. MR + Link Walking
   1. [[Bucket Props|A Little Riak Book: Developers#Buckets Props]]
 1. [[Operators|A Little Riak Book: Operators]]
   1. [[A Ring|A Little Riak Book: Operators#The Ring]]
   1. [[Clusters|A Little Riak Book: Operators#Clusters]]
   1. [[Setups|A Little Riak Book: Operators#Setups]]
-     1. Index
-     1. Search
-     1. MapReduce
   1. [[Configuration Notes|A Little Riak Book: Operators#Configuration Notes]]
   1. [[Reading Logs|A Little Riak Book: Operators#Reading Logs]]
   1. [[Riak Control|A Little Riak Book: Operators#Riak Control]]

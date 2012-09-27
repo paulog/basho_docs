@@ -109,7 +109,7 @@ You can think of buckets as [namespaces](http://en.wikipedia.org/wiki/Namespace_
 Using our `favorite` example from above, we can specify a favorite food, versus a favorite animal, by using the same key. Unless you're a midwest farm kid like me, these categories probably won't overlap much.
 
 ```javascript
-edibles["favorite"] = "pizza"
+food["favorite"] = "pizza"
 animals["favorite"] = "red panda"
 ```
 
@@ -381,6 +381,6 @@ As your server count grows---especially as you introduce multiple datacenters---
 
 Riak is designed to bestow a range of real-world benefits, but equally, to handle the fallout of weidling such power. Consistent hashing and vnodes are an elegant solution to horizontally scaling across servers. N/R/W allows you to dance with the CAP theorem by fine-tuning against its constraints. And vector clocks allow another step closer to true consistency by allowing you to manage conflicts that will occur at high load.
 
-We'll cover other concepts as needed, like the gossip protocol or read-repair.
+We'll cover other technical concepts as needed, like the gossip protocol or read-repair.
 
 Next we'll go through Riak as a user. We'll check out lookups, take advantage of write hooks, and alternative query options like secondary indexing, search, and mapreduce.

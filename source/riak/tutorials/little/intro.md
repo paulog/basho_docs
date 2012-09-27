@@ -40,6 +40,8 @@ The sweet-spot of Riak is high-volume (data that's available to read and write w
 
 Riak was built as a solution to real Big Data problems, based on the [[Amazon Dynamo|Dynamo]] design. Dynamo is a highly available design---meaning that it responds to requests quickly at very large scales, even if your application is storing and serving terabytes of data a day. Riak had been used in production prior to being open-sourced in 2009. It's currently used by Github, Comcast, Voxer, Disqus and others, with the larger systems storing hundreds of TBs of data, and handling several GBs per node daily.
 
+Riak was written on the Erlang programming language. Erlang was chosen due to it's strong support for concurrency, solid distributed communication, hot code loading, and fault-tolerance. It runs on a virtual machine, so running Riak requires you also have Erlang installed.
+
 So should you use Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost you, in some way (money, users, etc). Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
 
 ## About This Book
