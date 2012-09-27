@@ -55,6 +55,11 @@ $fadedGreen  : #6f8a86;
   border-#{$vert}-#{$horiz}-radius         : $radius;
 }
 
+@mixin opaque($dec: 1) {
+  opacity : $dec;
+  filter  : unquote('alpha(opacity=' + ($dec * 100) + ')');
+}
+
 /* =============================================================================
    Convenient Extensible Classes
    ========================================================================== */
@@ -174,12 +179,10 @@ body {
 
   a {
     @extend .block;
-    @include bgPattern('/images/layout/nav-li-bg.jpg', #393939);
-    font-size       : 90%;
+    @include bgPattern('/images/layout/nav-li-bg6.jpg', #393939);
     color           : #fff;
     padding         : 7px 12px;
     border-left     : 4px solid $fadedGreen;
-    margin-bottom   : 1px;
     text-decoration : none;
     
     &:hover {
@@ -191,28 +194,87 @@ body {
   
   .current a {
     border-left : 4px solid $orange;
+    cursor      : default;
+  }
+  .current a:hover {
+    @include bgPattern('/images/layout/nav-li-bg6.jpg', #393939);
   }
   
   h3, h4 {
     @extend .text-shadow;
-    margin : 10px 0 0;
+    @include bgPattern('/images/layout/nav-header-bg.jpg', transparent);
+    border-left : 4px solid $fadedGreen;
+    padding     : 5px 5px 5px 10px;
+    overflow    : visible;
     
     a {
-      @include bgPattern('/images/layout/nav-header-bg.jpg', transparent);
+      background : none;
+      padding    : 0;
+      border     : 0;
+      
+      &:hover {
+        background : none;
+      }
     }
   }
   
+  .depth-1 h3, .depth-2 h3, .depth-3 h3,
+  .depth-1 h4, .depth-2 h4, .depth-3 h4 {
+    margin-right : 0;
+  }
+  
   h3 {
-    font-size  : 125%;
-    margin-top : 15px;
+    font-size  : 135%;
+    margin-top : 7px;
+    
+    &:first-child {
+      margin-top : 25px;
+    }
   }
   
   h4 {
+    @extend .sans;
     font-size : 115%;
   }
   
+  ul {
+    display : none;
+    
+    &.depth-2, &.depth-3 {
+      margin-right : 0;
+    }
+  }
+  
+  .depth-1 li {
+    border-left : 4px solid $fadedGreen;
+  }
+  
   li:last-child {
-    margin-bottom : 10px;
+    margin-bottom : 8px;
+  }
+  
+  .depth-2, .depth-3 {
+    margin-left : 0px;
+  }
+  
+  span.menu-toggle {
+    @extend .block;
+    @include size(21px, 21px);
+    background : url('/images/layout/menu-opener2.png') left center no-repeat transparent;
+    float      : right;
+    margin     : 3px -5px 0 0;
+    
+    &.open {
+      background-position : -138px center;
+    }
+    
+    &.extra-margin {
+      margin-top : 10px;
+    }
+  }
+  
+  .depth-1 .menu-toggle, .depth-2 .menu-toggle, .depth-3 .menu-toggle {
+    //margin-right : -33px;
   }
 }
 
@@ -242,7 +304,7 @@ div[role="main"] {
     font-size : 285%;
     
     &.extra-large {
-      font-size   : 350%;
+      font-size   : 425%;
       line-height : 1.1;
       
       @media screen and (max-width: 810px) {
@@ -344,7 +406,7 @@ div[role="main"] {
     
   .mainarticle {
     position : relative;
-    padding  : 0 20px;
+    padding  : 0 0 0 20px;
     
     #nav-toggle {
       @include size(30px, 38px);
@@ -558,7 +620,7 @@ div[role=main] {
 
   .docs {
     padding   : 0 25px 0 0;
-    min-width : 20em;
+    min-width : 22em;
     
     h1 {
       font-size   : 225%;
@@ -622,6 +684,10 @@ div[role=main] {
       @include corner(left, bottom);
       @include corner(right, bottom);
       border-bottom : 1px solid #f0f0f0;
+    }
+    
+    pre {
+      margin : 0;
     }
   }
 }
