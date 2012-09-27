@@ -68,7 +68,7 @@ This limitation changes how you model data. Relational normalization (organizing
 
 ## Riak Components
 
-Riak is a Key/Value (KV) database, built from the ground up to safely distribute data across a cluster of physical servers (called nodes). A Riak cluster is also known as a Ring---we'll cover why later.
+Riak is a Key/Value (KV) database, built from the ground up to safely distribute data across a cluster of physical servers, called nodes. A Riak cluster is also known as a Ring (we'll cover why later).
 
 For now, we'll only consider the parts required to use Riak. Riak functions similar to a hashtable. Depending on your background, you may instead call it a map, or dictionary, or object. But the concept is the same: you store a value with an immutable key, and retrieve it later.
 
@@ -261,7 +261,7 @@ We can visualize the Ring with it's vnodes, managing nodes, and where `favorite`
 
 [IMAGE]
 
-The Ring is more than just a circular array of hash partitions. It's also a system of metadata that get's copied to every node. Each node is aware of every other node in the cluster, which nodes own which vnodes, and other system data.
+The Ring is more than just a circular array of hash partitions. It's also a system of metadata that gets copied to every node. Each node is aware of every other node in the cluster, which nodes own which vnodes, and other system data.
 
 Armed with this information, requests for data can target any node. It will horizontally access data from the proper nodes, and return the result.
 
@@ -275,7 +275,7 @@ Classic RDBMS databases are *write consistent*. Once a write is confirmed, succe
 
 <!-- The very act of placing our data in multiple servers carries some inherent risk. -->
 
-But when values are distributed, *consistency* might not be guarenteed. In the middle of an object's replication, two servers could have different results. When we update `favorite` to `cold pizza` on one node, another node might still contain the older value `pizza`. If you resquest the value of `favorite` during this replication, two different results can be returned---the database is inconsistent.
+But when values are distributed, *consistency* might not be guarenteed. In the middle of an object's replication, two servers could have different results. When we update `favorite` to `cold pizza` on one node, another node might temporarily contain the older value `pizza`. If you request the value of `favorite` during this replication, two different results can be returned---the database is inconsistent.
 
 We do have an alternative choice. Rather than lose consistency, you could chose to lose *availability*. We may, for instance, decide to lock the entire database during a write, and simply refuse to serve requests until that value has been replicated to all relevant nodes. Even for that split second time, clients have to wait while their results can be brought into a consistent state (meaning, all replicas will return the same value). For many high-traffic read/write use-cases, like an online shopping cart where even minor delays will cause people to just shop elsewhere, this is not an acceptable sacrifice.
 
@@ -293,17 +293,23 @@ Currently, no setting can make Riak CP in the general case, but a feature for a 
 
 A question the CAP theorem demands you answer with a distributed system is: do I give up strict consistency, or give up total availability? If a request comes in, do I lock out requests until I can enforce consistency across the nodes? Or do I serve requests at all costs, with the caveat that the database may become inconsistent?
 
-Riak's solution is based on Amazon Dynamo's novel approach of a *tunable* AP system. It takes advantage of the fact that, though the CAP theorem is true, you can choose what kind of tradeoffs you're willing to make. Riak is highly available to server requests, with the ability to tune its level of A/C tradeoff.
+Riak's solution is based on Amazon Dynamo's novel approach of a *tunable* AP system. It takes advantage of the fact that, though the CAP theorem is true, you can choose what kind of tradeoffs you're willing to make. Riak is highly available to serve requests, with the ability to tune its level of A/C tradeoff.
 
 Riak allows you to choose how many nodes you want to replicate to, and how many nodes must be written to or read from per request. These values are settings labeled `n_val` (the number of nodes to replicate to), `r` (the number of nodes read from before returning), and `w` (the number of nodes written to before considered successful).
 
 A thought experiment might help clarify.
 
+#### N
+
 With our 5 node cluster, having an `n_val=3` means values will always replicate to 3 nodes, as we've discussed above. This is the *N value*. You can set the other values to be all `n_val` nodes with the shorthand `all`.
 
-But you may not wish to wait for all nodes to be written to before returning. You can choose to write to all 3 (`w=3` or `w=all`), which means my values are more likely to be consistent, or choose to write only 1 (`w=1`), and allow the remaining 2 nodes to write asynchronously. This is the *W value*.
+#### W
+
+But you may not wish to wait for all nodes to be written to before returning. You can choose to write to all 3 (`w=3` or `w=all`), which means my values are more likely to be consistent, or choose to write only 1 (`w=1`), and allow the remaining 2 nodes to write asynchronously, but return a response quicker. This is the *W value*.
 
 In other words, setting `w=all` would help ensure your system was more consistent, at the expense of waiting longer, with a chance that your write would fail if fewer than 3 nodes were available (meaning, over half of your total servers are down).
+
+#### R
 
 The same goes for reading. To ensure you have the most recent value, you can read from all 3 nodes containing objects (`r=all`). Even if only 1 of 3 nodes has the most recent value, we can compare all nodes against each other and choose the latest one, thus ensuring some consistency. Remember when I mentioned that RDBMS databases were *write consistent*? This is *read consistency*. Just like `w=all`, however, the read will fail unless 3 nodes are available to be read. Finally, if you only want to quickly read any value, `r=1` has low latency, and is likely consistent if `w=all`.
 
@@ -317,7 +323,7 @@ In general terms, the N/R/W values are Riak's way of allowing you to trade less 
 
 If you've followed thus far, I only have one more conceptual wrench to throw at you. I wrote earlier that with `r=all`, we can "compare all nodes against each other and choose the latest one." But how do we know which is the latest value? This is where Vector Clocks come into play.
 
-Vector clocks measure a sequence of events, just like a normal clock. But since we can't reasonably keep dozens, or hundreds, or thousands of servers in sync (without really exotic hardware, like geosynchronous atomic clocks), we instead keep track of how, and who, modifies an object. It's as easy as keeping a vector (or array) or which clients change and object in which order. That way we can tell if an object is being updated or if a write conflict has occurred.
+Vector clocks measure a sequence of events, just like a normal clock. But since we can't reasonably keep dozens, or hundreds, or thousands of servers in sync (without really exotic hardware, like geosynchronous atomic clocks), we instead keep track of how, and who, modifies an object. It's as easy as keeping a vector (or array) of which clients change an object in which order. That way we can tell if an object is being updated or if a write conflict has occurred.
 
 Let's use our `favorite` example again, but this time we have 3 people trying to come to a concensus on their favorite food: Aaron, Britney, and Carrie. We'll track the value each has chosen, and the relevant vector clock, or vclock.
 
@@ -328,7 +334,7 @@ vclock: [Aaron: 1]
 value:  pizza
 ```
 
-Britney now comes along, and reads `favorite`, but decides to update pizza to `cold pizza`. When using vclocks, she must provide the vclock returned from the request. This is how Riak can help ensure you're updating a previous value, and not merely overwriting with your own.
+Britney now comes along, and reads `favorite`, but decides to update `pizza` to `cold pizza`. When using vclocks, she must provide the vclock returned from the request she wants to update. This is how Riak can help ensure you're updating a previous value, and not merely overwriting with your own.
 
 ```
 vclock: [Aaron: 1, Britney: 1]
@@ -342,7 +348,7 @@ vclock: [Aaron: 1, Carrie: 1]
 value:  lasagne
 ```
 
-This presents a problem, because there are now two vector clocks in play that diverge after `[Aaron: 1]`. So Riak (optionally) stores both values and both vclocks.
+This presents a problem, because there are now two vector clocks in play that diverge after `[Aaron: 1]`. So Riak can store both values and both vclocks.
 
 Later in the day Britney checks again, but this time she gets the two conflicting values, with two vclocks.
 
@@ -361,9 +367,9 @@ vclock: [Aaron: 1, Britney: 2]
 value:  pizza
 ```
 
-Now we are back to the simple case, where requesting the value of `favorite` will just return `pizza`.
+Now we are back to the simple case, where requesting the value of `favorite` will just return the agreed upon `pizza`.
 
-Beyond the ability for vector clocks to provide a reasonable history of updates is also used when reading values from two conflicting nodes. This is how we can compare the reads of multiple nodes and decide upon the most recent version.
+Beyond the ability for vector clocks to provide a reasonable history of updates, is also used when reading values from two conflicting nodes. This is how we can compare the reads of multiple nodes and decide upon the most recent version.
 
 The Riak mechanism uses internal hashing and system clocks to stop unbounded vclock growth. We'll dig into more details of Riak's vclocks in the next chapter.
 
@@ -371,9 +377,9 @@ The Riak mechanism uses internal hashing and system clocks to stop unbounded vcl
 
 Unlike single node databases like Neo4j or PostgreSQL, Riak does not support ACID transactions. Locking across multiple servers would kill write availability, and equally concerning, increase latency. While ACID transactions promise Atomicity, Consistency, Isolation, and Durability---Riak and other NoSQL databases follow BASE, or Basically Available, Soft state, Eventually consistent.
 
-The BASE acronym was meant as shorthand for the goals of non-ACID transacional databases like Riak. It is an acceptance that distribution is never perfect (basically available), all data is in flux (soft state), and that true consistency is generally untennable (eventually consistent).
+The BASE acronym was meant as shorthand for the goals of non-ACID-transactional databases like Riak. It is an acceptance that distribution is never perfect (basically available), all data is in flux (soft state), and that true consistency is generally untennable (eventually consistent).
 
-Be wary if anyone has promised distributed ACID transactions, it's usually couched in some other language or caveats like *row transactions*, or *per node transactions*, which basically mean *not transactional* in terms you would normally use to define it.
+Be wary if anyone has promised distributed ACID transactions---it's usually couched in some diminishing adjective or caveat like *row transactions*, or *per node transactions*, which basically mean *not transactional* in terms you would normally use to define it.
 
 As your server count grows---especially as you introduce multiple datacenters---the odds of partitions and node failures drastically increase. My best advice is to design for it.
 
