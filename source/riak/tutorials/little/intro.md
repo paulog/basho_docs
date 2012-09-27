@@ -7,6 +7,9 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+prev: ["A Little Riak Book", "index.html"]
+up:   ["A Little Riak Book", "index.html"]
+next: ["Concepts", "concepts.html"]
 ---
 
 <!-- As current users will tell you, Riak "just works". This is a testament to Riak's design, but has the downside where you can run a cluster for quite a long time without knowing how it works. This short manual is an attempt at resolving that conflict.
@@ -33,17 +36,14 @@ It's a hard number to pin down, because Big Data is a personal figure. What's bi
 
 The sweet-spot of Riak is high-volume (data that's available to read and write when you need it), high-velocity (easily responds to growth), and high-variety information assets (you can store any type of data as a value).
 
-Riak was built as a solution to real Big Data problems, based on the [[Amazon Dynamo|Dynamo]] design. But Riak was also built to be easy to operate and remain highly available at all times, while respecting the reality of consistency tradeoffs at scale.
+<!-- But Riak was also built to be easy to operate and remain highly available at all times, while respecting the reality of consistency tradeoffs at scale. -->
 
-Riak is built to be highly available, meaning that it responds to requests quickly at very large scales, even if your application is storing and serving terabytes of data a day.
+Riak was built as a solution to real Big Data problems, based on the [[Amazon Dynamo|Dynamo]] design. Dynamo is a highly available design---meaning that it responds to requests quickly at very large scales, even if your application is storing and serving terabytes of data a day. Riak had been used in production prior to being open-sourced in 2009. It's currently used by Github, Comcast, Voxer, Disqus and others, with the larger systems storing hundreds of TBs of data, and handling several GBs per node daily.
 
-So do you need Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost your system money. Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
+So should you use Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost you, in some way (money, users, etc). Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
 
-Riak has been used in production for years before it was spun off into it's own open-source project in 2009. It's currently used by Github, Comcast, Voxer, Disqus and others, with the larger system storing hundreds of TBs of data, and handling several GBs per node daily.
+## About This Book
 
-## Installing
+This is not an "install and follow along" guide. This is a "read and comprehend" guide. Don't feel compelled to have Riak, or even have a computer handy, when starting this book. You may feel like installing along at some point, and if so, instructions can be found on the Riak docs website.
 
-This is not an "install and follow along" guide. This is a "read and comprehend" guide. Don't feel compelled to install before continuing to read.
-
-## Launching
-
+In my opinion, the most important section of this book is the [[concepts|A Little Riak Book: Concepts]] chapter. If you have a little knowledge, it may start slow, but it picks up in a hurry. After laying the theoretical groundwork, we'll move onto helping [[developers|A Little Riak Book: Developers]] user Riak, by checking out how to query and tinker with some settings. Next, we'll go over the basic details that [[operators|A Little Riak Book: Operators]] should know, such as how to set up a Riak cluster, configure some values, reading logs, and more.

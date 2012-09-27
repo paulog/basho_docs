@@ -7,6 +7,9 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+prev: ["Introduction", "intro.html"]
+up:   ["A Little Riak Book", "index.html"]
+next: ["Developers", "developers.html"]
 ---
 
 When I first encountered Riak, I found a few concepts daunting. But understanding these theories made me appreciate the difficulty of the distributed database problem space, and the elegant solutions provided by Riak.

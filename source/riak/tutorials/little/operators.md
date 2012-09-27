@@ -7,6 +7,9 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+prev: ["Developers", "developers.html"]
+up:   ["A Little Riak Book", "index.html"]
+next: ["Notes", "notes.html"]
 ---
 
 Riak is one of the simplest NoSQL databases to operate. In some ways, it's downright mundane. Want more servers? Add them. A server crash at night? Sleep until morning and fix it.

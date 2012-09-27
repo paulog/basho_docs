@@ -7,6 +7,9 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+prev: ["Operators", "operators.html"]
+up:   ["A Little Riak Book", "index.html"]
+next: ["A Little Riak Book", "index.html"]
 ---
 
 

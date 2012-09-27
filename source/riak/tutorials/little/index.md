@@ -7,17 +7,18 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+next: ["Introduction", "intro.html"]
 ---
 
 1. [[Intro|A Little Riak Book: Intro]]
   1. [[What is Riak|A Little Riak Book: Intro#What is Riak]]
-  1. [[Installing|A Little Riak Book: Intro#Installing]]
-  1. [[Launching|A Little Riak Book: Intro#Launching]]
+  1. [[About This Book|A Little Riak Book: Intro#About This Book]]
 1. [[Concepts|A Little Riak Book: Concepts]]
-  1. [[Database Models|A Little Riak Book: Concepts#Database Models]]
-  1. [[This NoSQL Thing|A Little Riak Book: Concepts#This NoSQL Thing]]
+  1. [[The Landscape|A Little Riak Book: Concepts#The Landscape]]
+  1. [[Riak Components|A Little Riak Book: Concepts#Riak Components]]
   1. [[Replication and Partitions|A Little Riak Book: Concepts#Replication and Partitions]]
-  1. [[CAP Theorem|A Little Riak Book: Concepts#CAP Theorem]]
+  1. [[Practical Tradeoffs|A Little Riak Book: Concepts#Practical Tradeoffs]]
+  1. [[Wrapup|A Little Riak Book: Concepts#Wrapup]]
 1. [[Developers|A Little Riak Book: Developers]]
   1. [[Lookup|A Little Riak Book: Developers#Lookup]]
   1. [[Hooks|A Little Riak Book: Developers#Hooks]]

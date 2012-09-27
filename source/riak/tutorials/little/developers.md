@@ -7,6 +7,9 @@ toc: true
 versions: false
 audience: beginner
 keywords: []
+prev: ["Concepts", "concepts.html"]
+up:   ["A Little Riak Book", "index.html"]
+next: ["Operators", "operators.html"]
 ---
 
 _We're going to hold off on the details of installing Riak at the moment. If you'd like to follow along, it's easy enough to get started by following the documentation on the website. If not, this is a perfect section to read while you sit on a train without internet connection._
