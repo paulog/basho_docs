@@ -1,0 +1,130 @@
+// TODO: merge css files
+$orange : #f99d33;
+@mixin vendor($prop, $args) {
+  -webkit-#{$prop} : $args;
+  -moz-#{$prop}    : $args;
+  #{$prop}         : $args;
+}
+@mixin boxShadow($args) {
+  @include vendor('box-shadow', $args);
+}
+@mixin allCorners($radius: 5px) {
+  @include vendor('border-radius', $radius);
+}
+@mixin corner($horiz, $vert, $radius: 5px) {
+  -webkit-border-#{$vert}-#{$horiz}-radius : $radius;
+  -moz-border-radius-#{$vert}#{$horiz}     : $radius;
+  border-#{$vert}-#{$horiz}-radius         : $radius;
+}
+
+#riak-index {
+  article > section {
+    @include allCorners(8px);
+    @include boxShadow(inset 0 0 20px #A1A1A1);
+    background    : rgba(0, 0, 0, .05);
+    border        : 1px solid #F1F1F1;
+    margin        : 0.25em 0em 0.35em 0em;
+    border-bottom : 1px solid #F1F1F1;
+
+    header {
+      
+      h1, p {
+        padding : 0 25px;
+      }
+      
+      h1 {
+        padding-top : 10px;
+      }
+
+      a.command {
+        display         : block;
+        text-decoration : none;
+        
+        &:hover {
+          color           : #616366;
+        }
+      }
+      
+      .more {
+        @include corner(left, bottom, 5px);
+        @include corner(right, bottom, 5px);
+        padding    : 0 25px 5px;
+        border-top : 1px dashed silver;
+        background : rgba(0, 0, 0, .05);
+        text-align : center;
+        
+        &:hover {
+          background : rgba(249, 157, 51, .2);
+          cursor     : pointer;
+        }
+      }
+      
+      .more a {
+        width        : 0; 
+        height       : 0; 
+        border-left  : 10px solid transparent;
+        border-right : 10px solid transparent;
+        border-top   : 10px solid #666;
+        display      : inline-block;
+      }
+    }
+
+    .content {
+      display : none;
+      padding : 15px 25px 25px;
+      
+      h5 {
+       margin    : 0.5em 0;
+       font-size : 100%;
+      }
+      ul, li {
+        //list-style : none;
+        margin     : 0;
+        padding    : 0;
+      }
+      ul {
+        padding-left : 1.4em;
+        margin       : 0.5em 0;
+      }
+      section {
+        min-width : 50%;
+        float     : left;
+      }
+    }
+    
+    &#getting-started {
+      .content {
+        display : block;
+      }
+      .more {
+        display : none;
+      }
+    }
+    
+    &:hover {
+      border : 1px solid #F1F1FF;
+    }
+
+    &#getting-started {
+      .content {
+        section {
+          width : 100%;
+        }
+        ul {
+          list-style : square;
+        }
+        ul li {
+          display    : list-item;
+        }
+      }
+    }
+  }
+  hr {
+    width        : 0; 
+    height       : 0; 
+    border-left  : 10px solid transparent;
+    border-right : 10px solid transparent;
+    border-top   : 10px solid #666;
+    margin       : 0 auto;
+  }
+}
