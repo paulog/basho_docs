@@ -38,39 +38,63 @@ There are also dozens of other [[project-specific addons|Community Developed Lib
 The simplest write command in Riak is putting a value. It requires a key, value, and a bucket. The HTTP interface uses the basic REST methods (PUT, GET, POST, DELETE), which in curl are prefixed with `-X`. Putting the value `pizza` into the key `favorite` under the `food` bucket is like so:
 
 ```bash
-curl -H 'Content-Type:text/plain' -XPUT 'http://localhost:8098/riak/food/favorite' -d 'pizza'
+curl -XPUT 'http://localhost:8098/riak/food/favorite' \
+  -H 'Content-Type:text/plain' \
+  -d 'pizza'
 ```
 
-I threw a few curveballs in there. The `-d` flag denotes that the next string will be the value. We kept things simple the text `pizza`. How did Riak know we were giving it text? Because `-H 'Content-Type:text/plain'` defines the HTTP MIME type of this value to be plain text. But we could have set any value at all, be it XML, JSON, or even a image or video. Any HTTP MIME type is a valid value (which is anything, really).
+I threw a few curveballs in there. The `-d` flag denotes the next string will be the value. We've kept things simple the text `pizza`. But how did Riak know we were giving it text? Because the proceeeding line `-H 'Content-Type:text/plain'` defined the HTTP MIME type of this value to be plain text. We could have set any value at all, be it XML or JSON---even an image or a video. Any HTTP MIME type is valid content (which is anything, really).
 
 #### GET
+
+The next command reads the value pizza under the bucket/key `food`/`favorite`.
 
 ```bash
 curl -XGET 'http://localhost:8098/riak/food/favorite'
 pizza
 ```
 
+This is the simplest form of read, but we'll return to other ways of retrieving data shortly.
 
 #### POST
 
-In curl, the `-I` command will return the full response message, including the HTTP header data.
+Just like PUT, POST will save a value. But with POST a key is optional. All it requires is a bucket name, and it will generate a key for you... it just won't be pretty.
+
+Let's add a JSON value to represent a person under the `people` bucket. The response header is where a POST will return the key it generated for you.
+
+_In curl, the `-I` flag will return the full HTTP response message, including the HTTP header data._
 
 ```bash
-curl -I -H 'Content-Type:application/json' -XPOST 'http://localhost:8098/riak/people' -d '{"name":"aaron"}'
+curl -I -XPOST 'http://localhost:8098/riak/people' \
+  -H 'Content-Type:application/json' \
+  -d '{"name":"aaron"}'
 
 XXXXXXXX
 ```
 
+You can extract this key, and perform a git just as if you defined your own key from a PUT.
 
 #### DELETE
 
-Deleting an object in Riak is internally just marked as delete by setting the value to a tombstone. Later, another process called a reaper clears the marked objects from the backend. This detail isn't normally important, except to note that any code you write that scans all keys will have to deal with tombstoned objects. Simply counting keys is not a reliable figure for summing active objects.
+The final basic operation is deleting keys, which is just like getting a value, but padding the DELETE method to the `url`/`bucket`/`key`.
 
 ```bash
 curl -XDELETE 'http://localhost:8098/riak/people/XXXXXXXX'
 ```
 
-#### Keys
+A deleted object in Riak is just internally marked as delete, by setting a market known as a tombstone. Later, another process called a reaper clears the marked objects from the backend. This detail isn't normally important, except to note that any code you write that scans all keys will have to deal with tombstoned objects. Simply counting keys is not a reliable figure for summing active objects.
+
+#### Lists
+
+There are a couple helpful actions that shouldn't be used regularly in production (they're really expensive), but are useful for development, or running for occasional analytics.
+
+The first is listing all *buckets* in your cluster. The second is listing all *keys* under a specific bucket. Both of these actions are called in the same way, and come in two varieties.
+
+The first just performs a regular request, and returns all of your buckets or keys in a response. The following will give us all of our buckets.
+
+```bash
+curl 'http://localhost:8098/riak?list=true'
+```
 
 
 ### Responses
