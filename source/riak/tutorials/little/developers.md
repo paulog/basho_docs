@@ -54,7 +54,29 @@ curl -XGET 'http://localhost:8098/riak/food/favorite'
 pizza
 ```
 
-This is the simplest form of read, but we'll return to other ways of retrieving data shortly.
+This is the simplest form of read, responding with only the value. Riak contains much more information that you can access, if you read the entire response, including the HTTP header.
+
+In `curl` you can access the full response by way of the `-i` flag. Let's perform the above query again, adding that flag. 
+
+```bash
+curl -i -XGET 'http://localhost:8098/riak/food/favorite'
+HTTP/1.1 200 OK
+X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgaUHjmdwZTImMfKcN3h1Um+LAA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.0 (someone had painted it blue)
+Link: </riak/food>; rel="up"
+Last-Modified: Wed, 10 Oct 2012 18:56:23 GMT
+ETag: "1yHn7L0XMEoMVXRGp4gOom"
+Date: Thu, 11 Oct 2012 23:57:29 GMT
+Content-Type: text/plain
+Content-Length: 5
+
+pizza
+```
+
+The anatomy of HTTP is a bit beyond this little book, but let's look at a few parts worth noting.
+
+The first line gives the HTTP 1.1 code of the response, code `200 OK`. 
 
 #### POST
 
@@ -62,44 +84,143 @@ Just like PUT, POST will save a value. But with POST a key is optional. All it r
 
 Let's add a JSON value to represent a person under the `people` bucket. The response header is where a POST will return the key it generated for you.
 
-_In curl, the `-I` flag will return the full HTTP response message, including the HTTP header data._
-
 ```bash
-curl -I -XPOST 'http://localhost:8098/riak/people' \
+curl -i -XPOST 'http://localhost:8098/riak/people' \
   -H 'Content-Type:application/json' \
   -d '{"name":"aaron"}'
 
-XXXXXXXX
+HTTP/1.1 201 Created
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
+Location: /riak/people/DNQGJY0KtcHMirkidasA066yj5V
+Date: Wed, 10 Oct 2012 17:55:22 GMT
+Content-Type: application/json
+Content-Length: 0
 ```
 
-You can extract this key, and perform a git just as if you defined your own key from a PUT.
+You can extract this key from the `Location` value. Other than being ugly, is key is just as if you defined your own key by a PUT.
+
+You may note that no body was returned with the response. For any kind of write, you can add the `returnbody=true` parameter to force a value to return.
+
+```bash
+curl -i -XPOST 'http://localhost:8098/riak/people?returnbody=true' \
+  -H 'Content-Type:application/json' \
+  -d '{"name":"billy"}'
+```
+
+This is true of PUTs, POSTs, and as we'll see, DELETEs.
 
 #### DELETE
 
 The final basic operation is deleting keys, which is just like getting a value, but padding the DELETE method to the `url`/`bucket`/`key`.
 
 ```bash
-curl -XDELETE 'http://localhost:8098/riak/people/XXXXXXXX'
+curl -XDELETE 'http://localhost:8098/riak/people/DNQGJY0KtcHMirkidasA066yj5V'
 ```
 
 A deleted object in Riak is just internally marked as delete, by setting a market known as a tombstone. Later, another process called a reaper clears the marked objects from the backend. This detail isn't normally important, except to note that any code you write that scans all keys will have to deal with tombstoned objects. Simply counting keys is not a reliable figure for summing active objects.
 
 #### Lists
 
-There are a couple helpful actions that shouldn't be used regularly in production (they're really expensive), but are useful for development, or running for occasional analytics.
+Riak provides two kinds of lists. The first lists all *buckets* in your cluster, while the second lists all *keys* under a specific bucket. Both of these actions are called in the same way, and come in two varieties.
 
-The first is listing all *buckets* in your cluster. The second is listing all *keys* under a specific bucket. Both of these actions are called in the same way, and come in two varieties.
-
-The first just performs a regular request, and returns all of your buckets or keys in a response. The following will give us all of our buckets.
+The following will give us all of our buckets as a JSON object.
 
 ```bash
-curl 'http://localhost:8098/riak?list=true'
+curl 'http://localhost:8098/riak?buckets=true'
+
+{"buckets":["food"]}
 ```
 
+And this will give us all of our keys under the `food` bucket.
+
+```bash
+curl 'http://localhost:8098/riak/food?keys=true'
+
+{
+  ...
+  "keys": [
+    "favorite"
+  ]
+}
+```
+
+If we had very many keys, clearly this might take a while. So Riak also provides the ability to stream your list of keys. `keys=stream` will keep the connection open, returning results in chunks of arrays. When it has exhausted its list, it will close the connection. You can see the details through curl in verbose (`-v`) mode (much of that response has been stripped out below).
+
+```bash
+curl -v 'http://localhost:8098/riak/food?list=stream'
+...
+
+* Connection #0 to host localhost left intact
+...
+{"keys":["favorite"]}
+{"keys":[]}
+* Closing connection #0
+```
+
+You should note that none of these list actions should be used in production (they're really expensive operations). But they are useful for development, or running for occasional analytics.
 
 ### Responses
 
+We've focused on what you can request, but not much on the details of the responses you recieve from Riak. The HTTP interface uses HTTP headers to transmit metadata about the request (this metadata is are also available in the [[protocol buffer's RpbContent|PBC Fetch Object#Response]] response). We've seen a glimpse of this already, when we retrieved the Riak generated key from the POST method.
+
+In `curl`, any response header can be retrieved with the `-I` flag.
+
+```bash
+HTTP/1.1 200 OK
+X-Riak-Vclock: a85hYGBgzGDKBVIcRjaC3gH5wT8ymBJZ81gZUm1fneTLAgA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
+Link: </riak/people>; rel="up"
+Last-Modified: Wed, 10 Oct 2012 18:41:41 GMT
+ETag: "7SJsqCOMic6PqUlnAASuIL"
+Date: Wed, 10 Oct 2012 18:41:49 GMT
+Content-Type: application/json
+Content-Length: 16
+
+{"name":"aaron"}
+```
+
+HTTP/1.1 201 Created
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
+Location: /riak/people/f8BD18xUs0vrF8RQT71YlBfsHd
+Date: Wed, 10 Oct 2012 18:37:03 GMT
+Content-Type: application/json
+Content-Length: 0
+
 #### Codes
+
+Here are some of the more common codes you'll encounter using the HTTP API.
+
+20xs
+
+`200 OK` GET, and PUT or POST with `returnbody=true`
+
+HTTP/1.1 200 OK
+X-Riak-Vclock: a85hYGBgzGDKBVIcRjaC3gH5wT8ymBJZ81gZUm1fneTLAgA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
+Link: </riak/people>; rel="up"
+Last-Modified: Wed, 10 Oct 2012 18:41:41 GMT
+ETag: "7SJsqCOMic6PqUlnAASuIL"
+Date: Wed, 10 Oct 2012 18:41:49 GMT
+Content-Type: application/json
+Content-Length: 16
+
+{"name":"aaron"}
+
+`201 Created` POST
+
+`204 No Content` is just like a 202, except without any body data.
+
+DELETE
+
+HTTP/1.1 204 No Content
+Content-Length: 0
+
+
+HTTP/1.1 400 Bad Request
 
 #### Body
 
@@ -107,6 +228,16 @@ curl 'http://localhost:8098/riak?list=true'
 ### Header Metadata
 
 ### Quorum
+
+
+## Repairing
+
+<!-- Anti-Entropy -->
+
+### Read Repair
+
+### Siblings
+
 
 ## Bucket Props
 
