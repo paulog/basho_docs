@@ -229,6 +229,16 @@ HTTP/1.1 400 Bad Request
 
 ### Quorum
 
+#### N
+
+#### R
+
+#### W
+
+dw
+
+pw
+
 
 ## Repairing
 
