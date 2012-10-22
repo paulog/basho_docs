@@ -43,11 +43,11 @@ curl -XPUT 'http://localhost:8098/riak/food/favorite' \
   -d 'pizza'
 ```
 
-I threw a few curveballs in there. The `-d` flag denotes the next string will be the value. We've kept things simple the text `pizza`. But how did Riak know we were giving it text? Because the proceeeding line `-H 'Content-Type:text/plain'` defined the HTTP MIME type of this value to be plain text. We could have set any value at all, be it XML or JSON---even an image or a video. Any HTTP MIME type is valid content (which is anything, really).
+I threw a few curveballs in there. The `-d` flag denotes the next string will be the value. We've kept things simple with the string `pizza`, declaring it as text with the proceeeding line `-H 'Content-Type:text/plain'`. This defined the HTTP MIME type of this value as plain text. We could have set any value at all, be it XML or JSON---even an image or a video. Any HTTP MIME type is valid content (which is anything, really).
 
 #### GET
 
-The next command reads the value pizza under the bucket/key `food`/`favorite`.
+The next command reads the value `pizza` under the bucket/key `food`/`favorite`.
 
 ```bash
 curl -XGET 'http://localhost:8098/riak/food/favorite'
@@ -56,7 +56,7 @@ pizza
 
 This is the simplest form of read, responding with only the value. Riak contains much more information that you can access, if you read the entire response, including the HTTP header.
 
-In `curl` you can access the full response by way of the `-i` flag. Let's perform the above query again, adding that flag. 
+In `curl` you can access the full response by way of the `-i` flag. Let's perform the above query again, adding that flag.
 
 ```bash
 curl -i -XGET 'http://localhost:8098/riak/food/favorite'
@@ -76,7 +76,36 @@ pizza
 
 The anatomy of HTTP is a bit beyond this little book, but let's look at a few parts worth noting.
 
-The first line gives the HTTP 1.1 code of the response, code `200 OK`. 
+##### Status Codes
+
+The first line gives the HTTP version 1.1 response code code `200 OK`. You may be familiar with the common website code `404 Not Found`. There are many kinds of [HTTP status codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html), and the Riak HTTP interface stays true to their intent (logically managed by the Webmachine project).
+
+* **1xx Informational**
+* **2xx Success**
+* **3xx Further Action**
+* **4xx Client Error**
+* **5xx Server Error**
+
+Different actions can return different response/error codes. Complete lists can be found in the [[official API docs|Riak APIs]].
+
+##### Timings
+
+A block of headers represents different timings for the object or the request.
+
+* **Last-Modified** - The last time this object was modified (created or updated).
+* **ETag** - An *[entity tag](http://en.wikipedia.org/wiki/HTTP_ETag)* which can be used for cache validation by a client.
+* **Date** - The time of the request.
+
+
+##### Content
+
+These describe the HTTP body of the message (in Riak's terms, the *value*).
+
+* **Content-Type** - The type of value, such as `text/xml`.
+* **Content-Length** - The length, in bytes, of the message body.
+
+The other headers like `X-Riak-Vclock` and `Link`, will be covered later in this chapter.
+
 
 #### POST
 
@@ -158,6 +187,8 @@ curl -v 'http://localhost:8098/riak/food?list=stream'
 * Closing connection #0
 ```
 
+<!-- Transfer-Encoding -->
+
 You should note that none of these list actions should be used in production (they're really expensive operations). But they are useful for development, or running for occasional analytics.
 
 ### Responses
@@ -188,6 +219,9 @@ Location: /riak/people/f8BD18xUs0vrF8RQT71YlBfsHd
 Date: Wed, 10 Oct 2012 18:37:03 GMT
 Content-Type: application/json
 Content-Length: 0
+
+<!-- * **X-Riak-Vclock** - Tracks a lineage of changes and used for conflict resolution. *Covered later in this chapter.* -->
+
 
 #### Codes
 
