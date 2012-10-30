@@ -1,6 +1,51 @@
-# Riak Docs 2.0
+# Basho Docs (Wiki)
 
-*It's been a long time a-comin', baby...*
+This repo holds all the content (and other bits) for the most-excellent [riak/docs](http://docs.basho.com), home of documentation for Riak, Riak CS, and Riak Enterprise.  This document tells you how to contribute to the docs (please do!), and deploy them, should you be lucky enough to have our secret key.
+
+We use [Middleman](http://middlemanapp.com/), a Ruby-powered static site generator, to generate [riak/docs](http://docs.basho.com).  
+
+## How to Contribute 
+
+You can treat the basho_docs repo much like you would a code repo.  You can contribute in two ways: 1) submit a new [issue](https://github.com/basho/basho_docs/issues), or 2) (bonus points) make a change and submit a pull request.  To make a change (be it a typo fix or entirely new page full of Python client code snippets) follow these instructions:
+
+
+1.	[Install middleman](http://middlemanapp.com/getting-started/welcome/).   
+
+2.	Download a copy of the docs to your local machine:
+
+```
+git clone https://github.com/basho/basho_docs.git
+```
+
+3. 	Create a new Branch:
+
+```
+        git checkout -b <branch-name>
+```
+
+4. 	Make changes on your branch.
+
+5.	
+
+```
+gem install bundler
+bundle install
+RIAK_VERSION=1.2.0 middleman
+```
+
+5. Run the specs and fix any formatting issues
+
+        rake spec
+
+6. Commit changes to your branch
+
+7. [Send us a pull request][pull-req]
+
+If it's a small or obvious change, we're likely to merge it right away.  If we have questions, we'll communicate with you using the pull request's issue page.
+
+The [Gollum README][gol-read] provides a great introduction to using the wiki system.
+
+**Anyone can contribute to the Riak Wiki via the process outlined above. That said, there is a group of non-Basho developers who have commit access to this repo and can edit it directly. We call them _Community Wiki Committers_. [See this page][day-labor] if you're interested in becoming one.**
 
 ## Development Mode
 
