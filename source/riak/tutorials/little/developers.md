@@ -12,26 +12,30 @@ up:   ["A Little Riak Book", "index.html"]
 next: ["Operators", "operators.html"]
 ---
 
+<aside class="sidebar"><h3>A Note on "Node"</h3>
+
+It's worth mentioning that I'll use the word "node" a lot. Realistically, this means a physical/virtual server, but really, the workhorses of Riak are vnodes. 
+
+When you write to multiple vnodes, Riak will attempt to spread values to as many physical servers as possible. However, this isn't guarenteed (for example, if you have 64 vnodes, and only two physical ones, setting replication to 5 is perfectly fine, if not a bit redundant). You're safe conceptualizing nodes as Riak instances, and it's simpler than qualifying "vnode" all the time. If someting applies specifically to a vnode, I'll mention it.
+</aside>
+
 _We're going to hold off on the details of installing Riak at the moment. If you'd like to follow along, it's easy enough to get started by following the documentation on the website. If not, this is a perfect section to read while you sit on a train without internet connection._
 
 Developing with a Riak database is quite easy to do, once you understand some of the finer points. It is a key/value store, in the technical sense (you associate values with keys, and retrieve them using the same keys) but it offers so much more. You can embed write hooks to fire before or after a write, or index data for quick retrieval. Riak has a SOLR-based search, and lets you run mapreduce functions to extract and aggregate data across a huge cluster with TB of data in a reletively short timespan. We'll show some of the bucket-specific settings developers can configure.
 
 ## Lookup
 
-Since Riak is a KV database, the most basic commands are setting and getting values. We'll use the HTTP interface, via curl, but we could just as easily use Erlang, Ruby, Java, or any other supported language.
-
 <aside class="sidebar"><h3>Supported Languages</h3>
 
 Riak has official drivers for the following languages:
-
 Erlang, Java, PHP, Python, Ruby
 
-Including community supplied drivers, supported languages are even more numberous:
-
-C/C++, Clojure, Common Lisp, Dart, Go, Groovy, Haskell, Javascript (jquery and nodejs), Lisp Flavored Erlang, .NET, Perl, PHP, Play, Racket, Scala, Smalltalk
+Including community supplied drivers, supported languages are even more numberous: C/C++, Clojure, Common Lisp, Dart, Go, Groovy, Haskell, Javascript (jquery and nodejs), Lisp Flavored Erlang, .NET, Perl, PHP, Play, Racket, Scala, Smalltalk
 
 There are also dozens of other [[project-specific addons|Community Developed Libraries and Projects]].
 </aside>
+
+Since Riak is a KV database, the most basic commands are setting and getting values. We'll use the HTTP interface, via curl, but we could just as easily use Erlang, Ruby, Java, or any other supported language.
 
 #### PUT
 
@@ -278,50 +282,273 @@ Some other values you may have noticed in the bucket's `props` object are `pw`, 
 
 Finally `dw` represents the minimal *durable* writes necessary for success. For a normal `w` write to count a write as successful, it merely needs to promise a write has started, even though that write is still in memory, with no guarentee that write has been written to disk, aka, is durable. The `dw` setting represents a minimum number of durable writes necessary to be considered a success. Although a high `dw` value is likely slower than a high `w` value, there are cases where this extra enforcement is good to have, such as dealing with financial data.
 
+##### Per Request
+
+It's worth noting that these values (except for `n_val`) are not actually bound to the bucket, but are instead are just defaults for the bucket. R/W values actually apply *per request*. This is an important distinction, since it allows us to override these values on an as-needed basis: `r`, `pr`, `w`, `pw`, `dw`, `rw`.
+
+Consider you have data that you find very important (say, credit card checkout), and want to be certain that it is written to every node's disk before success. You could add `?dw=all` to the end of your write.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/cart1?dw=all \
+  -H "Content-Type: application/json" \
+  -d '{"paid":true}'
+```
+
+This is a consistent write, since if a single node is not available the write will fail. You wouldn't normally do this since you lose Riak's availability, but it's nice to have the option.
+
 ### Hooks
 
 Another utility of buckets are their ability to enforce behaviors on writes by way of hooks. You can attach functions to run either before, or after, a value is committed to a bucket.
 
 Functions that run before a write is called pre-commit, and has the ability to cancel a write altogether if the incoming data is considered bad in some way. A simple precommit hook it to check if a value exists at all.
 
+I put my custom files under the riak installation `./custom/my_validators.erl`.
+
 ```erlang
+-module(my_validators).
+-export([value_exists/1]).
+
 %% Object size must be greater than 0 bytes
 value_exists(RiakObject) ->
   case erlang:byte_size(riak_object:get_value(RiakObject)) of
     Size when Size == 0 -> {fail, "A value sized greater than 0 is required"};
-    _ -> Object
+    _ -> RiakObject
   end.
 ```
 
-{"mod": "precommits", "fun": "value_exists"}
+Then compile the file.
+
+```bash
+erlc my_validators.erl
+```
+
+Install the file by informing the Riak installation of your new code in `app.config` (restart Riak).
+
+```erlang
+{riak_kv,
+  ...
+  {add_paths, ["./custom"]}
+}
+```
+
+All you need to do is set the erlang module and function as a JSON value to the bucket's precommit array `{"mod":"my_validators","fun":"value_exists"}`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart \
+  -H "Content-Type:application/json" \
+  -d '{"props":{"precommit":[{"mod":"my_validators","fun":"value_exists"}]}}'
+```
+
+If you try and post to the `cart` bucket without a value, you should expect a failure.
+
+```bash
+curl -XPOST http://localhost:8098/riak/cart \
+  -H "Content-Type:application/json"
+A value sized greater than 0 is required
+```
+
+You can also write pre-commit functions in Javascript, though Erlang code will be the faster option.
+
+Post-commits are similar in form and function, but they react after a commit has occurred.
 
 ## Entropy
 
-Entropy is a biproduct of eventual consistency. In plain speak: although eventual consistency says a write will eventually replicate to other nodes, there is a bit of time where the nodes do not contain the same value.
+Entropy is a biproduct of eventual consistency. In other words: although eventual consistency says a write will replicate to other nodes in time, there can be a bit of delay while all nodes do not contain the same value.
 
-### Gossip
-
-### N/R/W Per Request
+That difference is *entropy*, and so Riak has created several *anti-entropy* strategies (also called *AE*). We've already talked about how an R/W quorum can deal with differing values when write/read requests overlap at least one node. Riak can repair entropy, or allow you the option to do so yourself.
 
 Riak has a couple strategies related to the case of nodes that do not agree on value.
 
-<!-- * `default` - Uses whatever the per-bucket consistency property is for R or W, which may be any of the above values, or an integer. -->
+### Last Write Wins
 
-<!-- Riak has a couple strategies to deal with the case of nodes that do not agree on value, an action known as Anti-Entropy. -->
+The most basic, and least reliable, strategy for curing entropy is called *last write wins*. It's the simple idea that the last write based on a node's system clock will overwrite an older one. You can turn this on in the bucket by setting the `last_write_wins` property to `true`.
+
+Realistically, this exists for speed and simplicity, when you really don't care about true order of operations, or the slight possibility of losing data. Since it's impossible to keep server clocks truly in sync (without the proverbial geosynchronized atomic clocks), this is a best guess as to what "last" means, to the nearest millisecond.
+
+### Vector Clock
+
+As we saw under [[Concepts|A Little Riak Book: Concepts#Practical Tradeoffs]], *vector clocks* are Riak's way of tracking a true sequence of events of an object. We went over the concept, but let's see how and when Riak vclocks are used.
+
+Every client needs its own id, sent on every write as `X-Riak-ClientId`.
+
+#### Siblings
+
+*Siblings* occur when you have conflicting values, with no clear way for Riak to know which value is correct. Riak will try and resolve these conflicts itself, however, you can instead choose for Riak to create siblings if you set a bucket's `allow_mult` property to `true`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart \
+  -H "Content-Type:application/json" \
+  -d '{"props":{"allow_mult":true}}'
+```
+
+Siblings arise in a couple cases.
+
+1. A client writes a value passing a stale vector clock, or missing one altogether.
+2. Two clients write at the same time with two different client IDs with the same vector clock value.
+
+We'll use the second case to manufacture our own conflict.
+
+#### Creating an Example Conflict
+
+Imagine a shopping cart exists for a single refrigerator, but several people in a household are able to order food for it.
+
+First `casey` (a vegan) places 10 orders of kale in his cart. To track who is adding to the refrigerator with ID `fridge97207`, his PUT adds his name as a client id.
+
+Casey writes `[{"item":"kale","count":10}]`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+  -H 'Content-Type:application/json' \
+  -H 'X-Riak-ClientId:casey' \
+  -d '[{"item":"kale","count":20}]'
+HTTP/1.1 200 OK
+X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgaUHjmTwZTImMfKsMKK7RRfFgA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.0 (someone had painted it blue)
+Link: </riak/cart>; rel="up"
+Last-Modified: Thu, 01 Nov 2012 00:13:28 GMT
+ETag: "2IGTrV8g1NXEfkPZ45WfAP"
+Date: Thu, 01 Nov 2012 00:13:28 GMT
+Content-Type: application/json
+Content-Length: 28
+
+[{"item":"kale","count":10}]
+```
+
+His roommate `mark`, reads what's in the order, and updates with his own addition. In order for Riak to know the order of operations, Mark adds the most recent vector clock to his PUT.
+
+Mark writes `[{"item":"kale","count":10},{"item":"milk","count":1}]`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+  -H 'Content-Type:application/json' \
+  -H 'X-Riak-ClientId:mark' \
+  -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTImMfKsMKK7RRfFgA=' \
+  -d '[{"item":"kale","count":20},{"item":"milk","count":1}]'
+HTTP/1.1 200 OK
+X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgaUHjmTwZTIlMfKcMaK7RRfFgA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.0 (someone had painted it blue)
+Link: </riak/cart>; rel="up"
+Last-Modified: Thu, 01 Nov 2012 00:14:04 GMT
+ETag: "62NRijQH3mRYPRybFneZaY"
+Date: Thu, 01 Nov 2012 00:14:04 GMT
+Content-Type: application/json
+Content-Length: 54
+
+[{"item":"kale","count":10},{"item":"milk","count":1}]
+```
+
+If you look closely, you'll notice that the vclock sent is not actually identical with the one returned.
+
+* <code>a85hYGBgzGDKBVIcypz/fgaUHjmTwZTI<strong>mMfKsMK</strong>K7RRfFgA=</code>
+* <code>a85hYGBgzGDKBVIcypz/fgaUHjmTwZTI<strong>lMfKcMa</strong>K7RRfFgA=</code>
+
+The vclock was incremented to keep track of the change over time.
+
+Now let's add a third roommate, `sean`, who loves steak. Before Mark updates the shared cart with milk, Sean adds his own order to Casey's kale, using the vector clock from Casey's order (the last order Sean was aware of).
+
+Sean writes `[{"item":"kale","count":10},{"item":"steak","count":12}]`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+  -H 'Content-Type:application/json' \
+  -H 'X-Riak-ClientId:sean' \
+  -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTImMfKsMKK7RRfFgA=' \
+  -d '[{"item":"kale","count":20},{"item":"steak","count":12}]'
+HTTP/1.1 300 Multiple Choices
+X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgaUHjmTwZTInMfKoG7LdoovCwA=
+Vary: Accept-Encoding
+Server: MochiWeb/1.1 WebMachine/1.9.0 (someone had painted it blue)
+Last-Modified: Thu, 01 Nov 2012 00:24:07 GMT
+ETag: "54Nx22W9M7JUKJnLBrRehj"
+Date: Thu, 01 Nov 2012 00:24:07 GMT
+Content-Type: multipart/mixed; boundary=Ql3O0enxVdaMF3YlXFOdmO5bvrs
+Content-Length: 491
+
+
+--Ql3O0enxVdaMF3YlXFOdmO5bvrs
+Content-Type: application/json
+Link: </riak/cart>; rel="up"
+Etag: 62NRijQH3mRYPRybFneZaY
+Last-Modified: Thu, 01 Nov 2012 00:14:04 GMT
+
+[{"item":"kale","count":20},{"item":"milk","count":1}]
+--Ql3O0enxVdaMF3YlXFOdmO5bvrs
+Content-Type: application/json
+Link: </riak/cart>; rel="up"
+Etag: 7kfvPXisoVBfC43IiPKYNb
+Last-Modified: Thu, 01 Nov 2012 00:24:07 GMT
+
+[{"item":"kale","count":20},{"item":"steak","count":12}]
+--Ql3O0enxVdaMF3YlXFOdmO5bvrs--
+```
+
+Woah! What's all that?
+
+Since there was a conflict between what Mark and Sean both set the fridge value to be, Riak kept both values.
+
+#### V-Tag
+
+Since we're using the HTTP client, Riak returned a `300 Multiple Choices` code with a `multipart/mixed` mime type. It's up to you to seperate the results, however, you can request a specific value by it's Etag, also called a Vtag.
+
+Issuing a plain get on the `/cart/fridge97207` key will also return the vtags of all siblings.
+
+```
+curl http://localhost:8098/riak/cart/fridge97207
+Siblings:
+62NRijQH3mRYPRybFneZaY
+7kfvPXisoVBfC43IiPKYNb
+```
+
+What can you do with this tag? Namely, you request the value of a specific sibling by its `vtag`. To get the first sibling in the list (Mark's milk):
+
+```bash
+curl http://localhost:8098/riak/cart/fridge97207?vtag=62NRijQH3mRYPRybFneZaY
+[{"item":"kale","count":20},{"item":"milk","count":1}]
+```
+
+If you want to retrieve all sibling data, tell Riak that you'll accept the multipart message by adding `-H "Accept:multipart/mixed"`.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/fridge97207 \
+  -H 'Accept:multipart/mixed'
+```
+
+<aside class="sidebar"><h3>Use-Case Specific?</h3>
+
+When siblings are created, it's up to the application to know how to deal
+with the conflict. In our example, do we want to accept only one of the
+orders? Should we remove both milk and steak and only keep the kale?
+Should we calculate the cheaper of the two and keep the cheapest option?
+Should we merge all of the results into a single order? This is why we asked
+Riak not to resolve this conflict automatically... we want this flexibility.
+</aside>
+
+#### Resolving Conflicts
+
+With all of our options available, we want to resolve this conflict. Since the way of resolving this conflict is largely *use-case specific*, our application can decide how to preceed.
+
+Let's merge the values into a single result set, taking the larger *count* if the *item* is the same. Pass in the vclock of the multipart object, so Riak knows you're resolving the conflict, and you'll get back a new vector clock.
+
+Successive reads will receive a single (merged) result.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+  -H 'Content-Type:application/json' \
+  -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTInMfKoG7LdoovCwA=' \
+  -d '[{"item":"kale","count":20},{"item":"milk","count":1},{"item":"steak","count":12}]'
+```
+
+It's worth noting that you should never set both `allow_multi` and
+`last_write_wins` to `true`. It can cause undefined behavior.
 
 ### Read Repair
 
-Read repair occurs when a successful read occurs — that is, the quorum was met — but not all replicas from which the object was requested agreed on the value. There are two possibilities here for the errant nodes:
+When a successful read happens, but not all replicas agree upon the value, this triggers a *read repair*. This means that Riak will update the replicas with the most recent value. This can happen when, either an object is not found (the vnode has no copy), of a vnode contains an older value (older means that it is an ancestor of the newest vector clock). Unlike `last_write_wins` or manual conflict resolution, read repair is (obviously, I hope, by the name) triggered by a read, rather than a write.
 
-1. The node responded with a `not found` for the object, meaning it doesn't have a copy.
-2. The node responded with a vector clock that is an ancestor of the vector clock of the successful read.
+If your nodes get be out of sync (for example, if you increase the `n_val` on a bucket), you can force read repair by performing a read operation for all of that bucket's keys. They may return with `not found` the first time, will pull the newest values. Successive reads should now work.
 
-When this situation occurs, Riak will force the errant nodes to update their object values based on the value of the successful read.
-
-### Siblings
-
-<!-- ### Handoff
-When a partitions parent node is unavailable, requests are sent to fallback nodes (handoff). -->
 
 ## Querying
 
@@ -337,76 +564,3 @@ We've already seen direct key-vaue lookups. The truth is, it's a pretty powerful
 
   It may not seem like it, but Link Walking is a specialized case of MapReduce
 
-
-
-<!--
-### Responses
-
-We've focused on what you can request, but not much on the details of the responses you recieve from Riak. The HTTP interface uses HTTP headers to transmit metadata about the request (this metadata is are also available in the [[protocol buffer's RpbContent|PBC Fetch Object#Response]] response). We've seen a glimpse of this already, when we retrieved the Riak generated key from the POST method.
-
-In `curl`, any response header can be retrieved with the `-I` flag.
-
-```bash
-HTTP/1.1 200 OK
-X-Riak-Vclock: a85hYGBgzGDKBVIcRjaC3gH5wT8ymBJZ81gZUm1fneTLAgA=
-Vary: Accept-Encoding
-Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
-Link: </riak/people>; rel="up"
-Last-Modified: Wed, 10 Oct 2012 18:41:41 GMT
-ETag: "7SJsqCOMic6PqUlnAASuIL"
-Date: Wed, 10 Oct 2012 18:41:49 GMT
-Content-Type: application/json
-Content-Length: 16
-
-{"name":"aaron"}
-```
-
-HTTP/1.1 201 Created
-Vary: Accept-Encoding
-Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
-Location: /riak/people/f8BD18xUs0vrF8RQT71YlBfsHd
-Date: Wed, 10 Oct 2012 18:37:03 GMT
-Content-Type: application/json
-Content-Length: 0
-
-* **X-Riak-Vclock** - Tracks a lineage of changes and used for conflict resolution. *Covered later in this chapter.*
-
-
-#### Codes
-
-Here are some of the more common codes you'll encounter using the HTTP API.
-
-20xs
-
-`200 OK` GET, and PUT or POST with `returnbody=true`
-
-HTTP/1.1 200 OK
-X-Riak-Vclock: a85hYGBgzGDKBVIcRjaC3gH5wT8ymBJZ81gZUm1fneTLAgA=
-Vary: Accept-Encoding
-Server: MochiWeb/1.1 WebMachine/1.9.2 (someone had painted it blue)
-Link: </riak/people>; rel="up"
-Last-Modified: Wed, 10 Oct 2012 18:41:41 GMT
-ETag: "7SJsqCOMic6PqUlnAASuIL"
-Date: Wed, 10 Oct 2012 18:41:49 GMT
-Content-Type: application/json
-Content-Length: 16
-
-{"name":"aaron"}
-
-`201 Created` POST
-
-`204 No Content` is just like a 202, except without any body data.
-
-DELETE
-
-HTTP/1.1 204 No Content
-Content-Length: 0
-
-
-HTTP/1.1 400 Bad Request
-
-#### Body
-
-
-### Header Metadata
--->

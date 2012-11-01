@@ -319,7 +319,7 @@ In general terms, the N/R/W values are Riak's way of allowing you to trade less 
 
 <!-- (create a diagram explaining CAP, with the various types of server setups) -->
 
-### Vector-Clock
+### Vector Clock
 
 If you've followed thus far, I only have one more conceptual wrench to throw at you. I wrote earlier that with `r=all`, we can "compare all nodes against each other and choose the latest one." But how do we know which is the latest value? This is where Vector Clocks come into play.
 
