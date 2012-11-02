@@ -12,6 +12,8 @@ up:   ["A Little Riak Book", "index.html"]
 next: ["Notes", "notes.html"]
 ---
 
+<!-- What Riak is famous for is its simplicity to operate and stability at increasing scales. -->
+
 Riak is one of the simplest NoSQL databases to operate. In some ways, it's downright mundane. Want more servers? Add them. A server crash at night? Sleep until morning and fix it.
 
 
@@ -35,7 +37,12 @@ Up to this point we've talked conceptually about "clusters" and a the "Ring".
 
 ## Setups
 
-### Index
+### Secondary Indexing (2i)
+
+<!-- riak_kv_eleveldb_backend -->
+
+<!-- How it works -->
+<!-- http://docs.basho.com/riak/latest/tutorials/querying/Secondary-Indexes/ -->
 
 ### Search
 

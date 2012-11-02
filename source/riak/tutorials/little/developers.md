@@ -347,7 +347,7 @@ curl -XPOST http://localhost:8098/riak/cart \
 A value sized greater than 0 is required
 ```
 
-You can also write pre-commit functions in Javascript, though Erlang code will be the faster option.
+You can also write pre-commit functions in Javascript, though Erlang code will execute faster.
 
 Post-commits are similar in form and function, but they react after a commit has occurred.
 
@@ -392,12 +392,12 @@ We'll use the second case to manufacture our own conflict.
 
 Imagine a shopping cart exists for a single refrigerator, but several people in a household are able to order food for it.
 
-First `casey` (a vegan) places 10 orders of kale in his cart. To track who is adding to the refrigerator with ID `fridge97207`, his PUT adds his name as a client id.
+First `casey` (a vegan) places 10 orders of kale in his cart. To track who is adding to the refrigerator with ID `fridge-97207`, his PUT adds his name as a client id.
 
 Casey writes `[{"item":"kale","count":10}]`.
 
 ```bash
-curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+curl -i -XPUT http://localhost:8098/riak/cart/fridge-97207?returnbody=true \
   -H 'Content-Type:application/json' \
   -H 'X-Riak-ClientId:casey' \
   -d '[{"item":"kale","count":20}]'
@@ -420,7 +420,7 @@ His roommate `mark`, reads what's in the order, and updates with his own additio
 Mark writes `[{"item":"kale","count":10},{"item":"milk","count":1}]`.
 
 ```bash
-curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+curl -i -XPUT http://localhost:8098/riak/cart/fridge-97207?returnbody=true \
   -H 'Content-Type:application/json' \
   -H 'X-Riak-ClientId:mark' \
   -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTImMfKsMKK7RRfFgA=' \
@@ -446,16 +446,16 @@ If you look closely, you'll notice that the vclock sent is not actually identica
 
 The vclock was incremented to keep track of the change over time.
 
-Now let's add a third roommate, `sean`, who loves steak. Before Mark updates the shared cart with milk, Sean adds his own order to Casey's kale, using the vector clock from Casey's order (the last order Sean was aware of).
+Now let's add a third roommate, `andy`, who loves almonds. Before Mark updates the shared cart with milk, Andy adds his own order to Casey's kale, using the vector clock from Casey's order (the last order Andy was aware of).
 
-Sean writes `[{"item":"kale","count":10},{"item":"steak","count":12}]`.
+Andy writes `[{"item":"kale","count":10},{"item":"almonds","count":12}]`.
 
 ```bash
-curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+curl -i -XPUT http://localhost:8098/riak/cart/fridge-97207?returnbody=true \
   -H 'Content-Type:application/json' \
-  -H 'X-Riak-ClientId:sean' \
+  -H 'X-Riak-ClientId:andy' \
   -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTImMfKsMKK7RRfFgA=' \
-  -d '[{"item":"kale","count":20},{"item":"steak","count":12}]'
+  -d '[{"item":"kale","count":20},{"item":"almonds","count":12}]'
 HTTP/1.1 300 Multiple Choices
 X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgaUHjmTwZTInMfKoG7LdoovCwA=
 Vary: Accept-Encoding
@@ -480,22 +480,22 @@ Link: </riak/cart>; rel="up"
 Etag: 7kfvPXisoVBfC43IiPKYNb
 Last-Modified: Thu, 01 Nov 2012 00:24:07 GMT
 
-[{"item":"kale","count":20},{"item":"steak","count":12}]
+[{"item":"kale","count":20},{"item":"almonds","count":12}]
 --Ql3O0enxVdaMF3YlXFOdmO5bvrs--
 ```
 
 Woah! What's all that?
 
-Since there was a conflict between what Mark and Sean both set the fridge value to be, Riak kept both values.
+Since there was a conflict between what Mark and Andy both set the fridge value to be, Riak kept both values.
 
 #### V-Tag
 
 Since we're using the HTTP client, Riak returned a `300 Multiple Choices` code with a `multipart/mixed` mime type. It's up to you to seperate the results, however, you can request a specific value by it's Etag, also called a Vtag.
 
-Issuing a plain get on the `/cart/fridge97207` key will also return the vtags of all siblings.
+Issuing a plain get on the `/cart/fridge-97207` key will also return the vtags of all siblings.
 
 ```
-curl http://localhost:8098/riak/cart/fridge97207
+curl http://localhost:8098/riak/cart/fridge-97207
 Siblings:
 62NRijQH3mRYPRybFneZaY
 7kfvPXisoVBfC43IiPKYNb
@@ -504,14 +504,14 @@ Siblings:
 What can you do with this tag? Namely, you request the value of a specific sibling by its `vtag`. To get the first sibling in the list (Mark's milk):
 
 ```bash
-curl http://localhost:8098/riak/cart/fridge97207?vtag=62NRijQH3mRYPRybFneZaY
+curl http://localhost:8098/riak/cart/fridge-97207?vtag=62NRijQH3mRYPRybFneZaY
 [{"item":"kale","count":20},{"item":"milk","count":1}]
 ```
 
 If you want to retrieve all sibling data, tell Riak that you'll accept the multipart message by adding `-H "Accept:multipart/mixed"`.
 
 ```bash
-curl -i -XPUT http://localhost:8098/riak/cart/fridge97207 \
+curl -i -XPUT http://localhost:8098/riak/cart/fridge-97207 \
   -H 'Accept:multipart/mixed'
 ```
 
@@ -519,7 +519,7 @@ curl -i -XPUT http://localhost:8098/riak/cart/fridge97207 \
 
 When siblings are created, it's up to the application to know how to deal
 with the conflict. In our example, do we want to accept only one of the
-orders? Should we remove both milk and steak and only keep the kale?
+orders? Should we remove both milk and almonds and only keep the kale?
 Should we calculate the cheaper of the two and keep the cheapest option?
 Should we merge all of the results into a single order? This is why we asked
 Riak not to resolve this conflict automatically... we want this flexibility.
@@ -534,10 +534,10 @@ Let's merge the values into a single result set, taking the larger *count* if th
 Successive reads will receive a single (merged) result.
 
 ```bash
-curl -i -XPUT http://localhost:8098/riak/cart/fridge97207?returnbody=true \
+curl -i -XPUT http://localhost:8098/riak/cart/fridge-97207?returnbody=true \
   -H 'Content-Type:application/json' \
   -H 'X-Riak-Vclock:a85hYGBgzGDKBVIcypz/fgaUHjmTwZTInMfKoG7LdoovCwA=' \
-  -d '[{"item":"kale","count":20},{"item":"milk","count":1},{"item":"steak","count":12}]'
+  -d '[{"item":"kale","count":20},{"item":"milk","count":1},{"item":"almonds","count":12}]'
 ```
 
 It's worth noting that you should never set both `allow_multi` and
@@ -552,15 +552,392 @@ If your nodes get be out of sync (for example, if you increase the `n_val` on a 
 
 ## Querying
 
-We've already seen direct key-vaue lookups. The truth is, it's a pretty powerful mechanism that spans a spectrum of usecases. However, sometimes we need to lookup data by values, rather than keys. Sometimes we need to perform some calculation
+So far we've only dealt with key-value lookups. The truth is, key-value is a pretty powerful mechanism that spans a spectrum of use-cases. However, sometimes we need to lookup data by value, rather than key. Sometimes we need to perform some calculations, or aggregations, or search.
 
 ### Secondary Indexing (2i)
 
-### Search (Yokozuna)
+A *secondary index* (2i) is a datastructure that lowers the cost of
+finding non-key values. Like many other databases, Riak has the
+ability to index data. However, since Riak has no real knowledge of
+the data it stores (they're just binary values), it uses metadata to
+index defined by a name pattern to be either integers or binary values.
 
-### MR + Link Walking
+If your installation is configured to use 2i (shown in the next chapter),
+simply writing a value to Riak with the header will be indexes,
+provided it's prefixed by `X-Riak-Index-` and suffixed by `_int` for an 
+integer, or `_bin` for a string.
+
+```bash
+curl -i -XPUT http://localhost:8098/riak/people/casey \
+  -H 'Content-Type:application/json' \
+  -H 'X-Riak-Index-age_int:31' \
+  -H 'X-Riak-Index-fridge_bin:fridge-97207' \
+  -d '{"work":"rodeo clown"}'
+```
+
+Querying can be done in two forms: exact match and range. Add a couple more people and we'll see what we get: `mark` is `32`, and `andy` is `35`, they both share `fridge-97207`.
+
+What people own `fridge-97207`? It's a quick lookup to receive the
+keys that have matching index values.
+
+```bash
+curl http://localhost:8098/buckets/people/index/fridge_bin/fridge-97207
+{"keys":["mark","casey","andy"]}
+```
+
+With those keys it's a simple lookup to get the bodies.
+
+The other query option is an inclusive ranged match. This finds all
+people under the ages of `32`, by searching between `0` and `32`.
+
+```bash
+curl http://localhost:8098/buckets/people/index/age_int/0/32
+{"keys":["mark","casey"]}
+```
+
+That's about it. It's a basic form of 2i, with a decent array of utility.
+
+### MapReduce/Link Walking
+
+MapReduce is a method of aggregating large amounts of data by seperating the
+processing into two phases, map and reduce, that themselves are executed
+in parts. Map will be executed per object to convert/extract some value,
+then those mapped values will be reduced into some aggregate result. What
+do we gain from this structure? It's predicated on the idea that it's cheaper
+to move the algorithms to where the data lives, than to transfering massive 
+amounts of data to a single server to run a calculation.
+
+This method, popularized by Google, can be seen in a wide array of NoSQL
+databases. In Riak, you execute a mapreduce job on a single node, which
+then propogates to the other nodes. The results are mapped and reduced,
+then further reduced down to the calling node and returned.
+
+[IMAGE]
+
+Let's assume we have a bucket for log values that stores messages
+prefixed by either INFO or ERROR. We want to count the number of INFO
+logs that contain the word "cart".
+
+```bash
+curl -XPOST http://localhost:8098/riak/logs -d 'INFO: New user added'
+curl -XPOST http://localhost:8098/riak/logs -d 'INFO: Kale added to shopping cart'
+curl -XPOST http://localhost:8098/riak/logs -d 'INFO: Milk added to shopping cart'
+curl -XPOST http://localhost:8098/riak/logs -d 'ERROR: shopping cart cancelled'
+```
+
+MapReduce jobs can be either Erlang or Javascript code. This time we'll go the
+easy route and write Javascript. You execute mapreduce by posting JSON to the
+`/mapred` path.
+
+```bash
+curl -XPOST http://localhost:8098/mapred \
+  -H 'Content-Type: application/json' \
+  -d @- \
+<<EOF
+{
+  "inputs":"logs",
+  "query":[{
+    "map":{
+      "language":"javascript",
+      "source":"function(riakObject, keydata, arg) {
+        var m = riakObject.values[0].data.match(/^INFO.*cart/);
+        return [(m ? m.length : 0 )];
+      }"
+    },
+    "reduce":{
+      "language":"javascript",
+      "source":"function(values, arg){
+        return [values.reduce(
+          function(total, v){ return total + v; }, 0)
+        ];
+      }"
+    }
+  }]
+}
+EOF
+```
+
+The result should be `[2]`, as expected. Both map and reduce phases should
+always return an array. The map phase receives a single riak object, while
+the reduce phase received an array of values, either the result of multiple
+map function outputs, or of multiple reduce outputs. I probably cheated a
+bit by using Javascript's `reduce` function to sum the values, but, well,
+welcome to the world of thinking in terms of mapreduce!
+
+#### Key Filters
+
+Besides executing a map function against every object in a bucket, you
+can reduce the scope by using *key filters*. Just as it sounds, they
+are a way of only including those objects that match a pattern...
+it filters out certain keys.
+
+Rather than passing in a bucket name as a value for `inputs`, instead
+we pass it a JSON object containing the `bucket` and `key_filters`.
+The `key_filters` get an array describing how to transform then test each key
+in the bucket. Any keys that match the predicate will be passed into the
+map phase, all others are just filtered out.
+
+To get all keys in the `cart` bucket that end with a number greater than 97000,
+you could tokenize the keys on `-` (remember we used `fridge-97207`) and
+keep the second half of the string, convert it to an integer, then compare
+that number to be greater than 97000.
+
+```
+"inputs":{
+  "bucket":"cart",
+  "key_filters":[["tokenize", "-", 2],["string_to_int"],["greater_than",97000]]
+}
+```
+
+It would look like this to have the mapper just return matching object keys. Pay
+special attention to the `map` function, and lack of `reduce`.
+
+```bash
+curl -XPOST http://localhost:8098/mapred \
+  -H 'Content-Type: application/json' \
+  -d @- \
+<<EOF
+{
+  "inputs":{
+    "bucket":"cart",
+    "key_filters":[
+      ["tokenize", "-", 2],
+      ["string_to_int"],
+      ["greater_than",97000]
+    ]
+  },
+  "query":[{
+    "map":{
+      "language":"javascript",
+      "source":"function(riakObject, keydata, arg) {
+        return [riakObject.key];
+      }"
+    }
+  }]
+}
+EOF
+```
+
+#### MR + 2i
+
+Another option when using mapreduce is to combine it with secondary indexes.
+You can pipe the results of a 2i query into a mapreducer, simply specify the
+index you wish to use, and either a `key` for an index lookup, or `start` and
+`end` values for a ranged query.
+
+```json
+    ...
+    "inputs":{
+       "bucket":"people",
+       "index": "age_int",
+       "start": 18,
+       "end":   32
+    },
+    ...
+```
 
 #### Link Walking
 
-  It may not seem like it, but Link Walking is a specialized case of MapReduce
+Conceptually, a link is a one-way relationship from one object to another. 
+*Link walking* is a convenient query option for retrieving data when you start
+with the object linked from.
 
+Let's add a link to our people, by setting `casey` as the brother of `mark`
+using the HTTP header `Link`.
+
+```bash
+curl -XPUT http://localhost:8098/riak/people/mark \
+  -H 'Content-Type:application/json' \
+  -H 'Link: </riak/people/casey>; riaktag="brother"'
+```
+
+With a Link in place, now it's time to walk it. Walking is like a normal
+request, but with the suffix of `/[bucket],[riaktag],[keep]`. In other words,
+the *bucket* a possble link points to, the value of a *riaktag*, and whether to
+*keep* the results of this phase (only useful when chaining link walks). Each
+of these values can be set to a wildcard _, meaning you don't care the value.
+
+```bash
+curl http://localhost:8098/riak/people/mark/people,brother,_
+
+--8wuTE7VSpvHlAJo6XovIrGFGalP
+Content-Type: multipart/mixed; boundary=991Bi7WVpjYAGUwZlMfJ4nPJROw
+
+--991Bi7WVpjYAGUwZlMfJ4nPJROw
+X-Riak-Vclock: a85hYGBgzGDKBVIcypz/fgZMzorIYEpkz2NlWCzKcYovCwA=
+Location: /riak/people/casey
+Content-Type: application/json
+Link: </riak/people>; rel="up"
+Etag: Wf02eljDiBa5q5nSbTq2s
+Last-Modified: Fri, 02 Nov 2012 10:00:03 GMT
+x-riak-index-age_int: 31
+x-riak-index-fridge_bin: fridge-97207
+
+{"work":"rodeo clown"}
+--991Bi7WVpjYAGUwZlMfJ4nPJROw--
+
+--8wuTE7VSpvHlAJo6XovIrGFGalP--
+```
+
+Even without returning the Content-Type, this kind of body should look familiar.
+Link walking always returns a `multipart/mixed`, since a single key can
+contain any number of links, meaning any number of objects returned.
+
+It gets crazier. You can actually chain together link walks, which will follow the
+a followed link. If `casey` has links, they can be followed by tacking another link
+triplet on the end, like so:
+
+```bash
+curl http://localhost:8098/riak/people/mark/people,brother,0/_,_,_
+```
+
+Now it may not seem so from what we've seen, but link walking is a specialized
+case of mapreduce.
+
+There is another phase of a mapreduce query called "link". Rather than
+executing a function, however, it only requires the same configuration
+that you pass through the shortcut url query.
+
+```json
+    ...
+    "query":[{
+      "link":{
+        "bucket":"people",
+        "tag":   "brother",
+        "keep":  false
+      }
+    }]
+    ...
+```
+
+As we've seen, mapreduce in Riak is a powerful way of pulling data out of an
+otherwise straight key/value store. But we have one more method of finding
+data in Riak.
+
+
+<aside class="sidebar"><h3>What Happened to Riak Search?</h3>
+
+If you have used Riak before, or have ahold of some older documentation,
+you may wonder what the difference is between Riak Search and Yokozuna.
+
+In an attempt to make Riak Search user friendly, it was originally developed
+with a "Solr like" interface. Sadly, due to the complexity of building
+distributed search engines, it was woefully incomplete. Basho decided that,
+rather than attempting to maintain parity with Solr, a popular and featureful
+search engine in it's own right, it made more sense to integrate the two.
+</aside>
+
+### Search (Yokozuna)
+
+*Note: This is covering a project still under development. Changes are to be 
+expected, so please refer to the
+[project page](https://github.com/rzezeski/yokozuna) for the most recent
+information.*
+
+Yokozuna is an extension to Riak that lets you perform searches to find
+data in a Riak cluster. Unlike the original Riak Search, Yokozuna leverages
+distributed Solr to perform the inverted indexing and management of
+retrieving matching values.
+
+Before using Yokozuna, you'll have to have it installed and a bucket set
+up with an index (these details can be found in the next chapter).
+
+The simplest example is a full-text search. Here we add `ryan` to the
+`people` table (with a default index).
+
+```bash
+curl -XPUT http://localhost:8091/riak/people/ryan \
+  -H 'Content-Type:text/plain' \
+  -d 'Ryan Zezeski'
+```
+
+To execute a search, request `/search/[bucket]` along with any distributed [Solr parameters](http://wiki.apache.org/solr/CommonQueryParameters). Here we
+query for documents that contain a word starting with `zez`, request the
+results to be in json format (`wt=json`), only return the Riak key
+(`fl=_yz_rk`).
+
+```bash
+curl 'http://localhost:8091/search/people?wt=json&omitHeader=true&fl=_yz_rk&q=zez*' | jsonpp
+{
+  "response": {
+    "numFound": 1,
+    "start": 0,
+    "maxScore": 1.0,
+    "docs": [
+      {
+        "_yz_rk": "ryan"
+      }
+    ]
+  }
+}
+```
+
+With the matching `_yz_rk` keys, you can retrieve the bodies with a simple
+Riak lookup.
+
+Yokozuna supports Solr 4.0, which includes filter queries, ranges, page scores,
+start values and rows (the last two are useful for pagination). You can also
+receive snippets of matching
+[highlighted text](http://wiki.apache.org/solr/HighlightingParameters)
+(`hl`,`hl.fl`), which is useful for building a search engine (and something
+we use for [search.basho.com](http://search.basho.com)).
+
+
+#### Tagging
+
+Another useful feature of Solr and Yokozuna is the tagging of values. Tagging
+values give additional context to a Riak value. The current implementation
+requires all tagged values begin with `X-Riak-Meta`, and be listed under
+a special header named `X-Riak-Meta-yz-tags`.
+
+```bash
+curl -XPUT http://localhost:8091/riak/people/dave \
+  -H 'Content-Type:text/plain' \
+  -H 'X-Riak-Meta-yz-tags: X-Riak-Meta-nickname_s' \
+  -H 'X-Riak-Meta-nickname_s:dizzy' \
+  -d 'Dave Smith'
+```
+
+To search by the `nickname_s` tag, just prefix the query string followed
+by a colon.
+
+```bash
+curl 'http://localhost:8091/search/people?wt=json&omitHeader=true&q=nickname_s:dizzy' | jsonpp
+{
+  "response": {
+    "numFound": 1,
+    "start": 0,
+    "maxScore": 1.4054651,
+    "docs": [
+      {
+        "nickname_s": "dizzy",
+        "id": "dave_25",
+        "_yz_ed": "20121102T215100 dave m7psMIomLMu/+dtWx51Kluvvrb8=",
+        "_yz_fpn": "23",
+        "_yz_node": "dev1@127.0.0.1",
+        "_yz_pn": "25",
+        "_yz_rk": "dave",
+        "_version_": 1417562617478643712
+      }
+    ]
+  }
+}
+```
+
+Notice that the `docs` returned also contain `"nickname_s":"dizzy"` as a
+value. All tagged values will be returned on matching results.
+
+*Expect more features to appear as Yokozuna gets closer to a final release.*
+
+## Wrapup
+
+Riak is a distributed datastore with several additions to improve upon the
+standard key-value lookups, like specifying replication values. Since values
+in Riak are opaque, many of these methods either: require custom code to
+extract and give meaning to values,
+such as *mapreduce*; or allow for header metadata to provide an added
+descriptive dimension to the object, such as *secondary indexes*, *link
+walking*, or *search*.
+
+Next we'll peek further under the hook, and see how to set up and manage
+a cluster of your own, and what you should know.

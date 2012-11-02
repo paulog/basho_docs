@@ -16,11 +16,11 @@ When I first encountered Riak, I found a few concepts daunting. But understandin
 
 ## The Landscape
 
-Before we understand where Riak sits in the spectrum of databases, it's good to have a little front matter. The existence of databases like Riak is the culmination of two things: accessible technology spuring more data requirements, and a gap in the existing database market.
+Before we understand where Riak sits in the spectrum of databases, it's good to have a little front matter. The existence of databases like Riak is the culmination of two things: accessible technology spuring different data requirements, and gaps in the data management market.
 
-First, as we've seen steady improvements in technology along with reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world caused by the web and shrinking, cheaper computers (like smartphones), this has spured an exponential growth of data, and a demand for more predictability and speed by savvier users. In short, more data is being created on the front-end, while more data is being managed on the backend.
+First, as we've seen steady improvements in technology along with reductions in cost, vast amounts of computing power and storage are now within the grasp of nearly anyone. Along with our increasingly interconnected world caused by the web and shrinking, cheaper computers (like smartphones), this has catalyzed an exponential growth of data, and a demand for more predictability and speed by savvier users. In short, more data is being created on the front-end, while more data is being managed on the backend.
 
-Second, relational database management systems (RDBMS) had become fine tuned over the years for a set of use-cases like business intelligence. They were also technically tuned for things like optimizing disk access, and squeezing performance out of single larger servers, but cheap commodity (or virtualized) servers made horizontal growth increasingly attractive. As cracks in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs.
+Second, relational database management systems (RDBMS) had become fine tuned over the years for a set of use-cases like business intelligence. They were also technically tuned for things like optimizing disk access, and squeezing performance out of single larger servers, even while cheap commodity (or virtualized) servers made horizontal growth increasingly attractive. As cracks in relational implementations became apparent, custom implementations arose in response to specific problems not originally envisioned by the relational DBs.
 
 These new databases are loosely called NoSQL, and Riak is of its ilk.
 
@@ -45,7 +45,7 @@ This limitation changes how you model data. Relational normalization (organizing
     Examples: *PostgreSQL*, *MySQL*, *Oracle*
   2. **Graph**. These exist for highly interconnected data. They excel in
     modeling complex relationships between nodes, and many implementations can
-    handle multiple billions of nodes and relationships (or edges and vertices).
+    handle multiple billions of nodes and relationships (or edges and vertices). I tend to include *triplestores* and *object DBs* to be specialized varients.
     
     Examples: *[[Neo4j|Riak Compared to Neo4j]]*, *Graphbase*, *InfiniteGraph*
   3. **Document**. Document datastores model hierarchical values called documents,

@@ -42,10 +42,10 @@ Riak was built as a solution to real Big Data problems, based on the [[Amazon Dy
 
 Riak was written on the Erlang programming language. Erlang was chosen due to it's strong support for concurrency, solid distributed communication, hot code loading, and fault-tolerance. It runs on a virtual machine, so running Riak requires you also have Erlang installed.
 
-So should you use Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost you, in some way (money, users, etc). Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
+So should you use Riak? A good rule of thumb for potential users is to ask yourself if every moment of downtime will cost you in some way (money, users, etc). Not all systems require such extreme amounts of uptime, and if you don't, Riak may not be for you.
 
 ## About This Book
 
-This is not an "install and follow along" guide. This is a "read and comprehend" guide. Don't feel compelled to have Riak, or even have a computer handy, when starting this book. You may feel like installing along at some point, and if so, instructions can be found on the Riak docs website.
+This is not an "install and follow along" guide. This is a "read and comprehend" guide. Don't feel compelled to have Riak, or even have a computer handy, when starting this book. You may feel like installing along at some point, and if so, instructions can be found on the [Riak docs](http://docs.basho.com).
 
-In my opinion, the most important section of this book is the [[concepts|A Little Riak Book: Concepts]] chapter. If you have a little knowledge, it may start slow, but it picks up in a hurry. After laying the theoretical groundwork, we'll move onto helping [[developers|A Little Riak Book: Developers]] use Riak, by checking out how to query and tinker with some settings. Next, we'll go over the basic details that [[operators|A Little Riak Book: Operators]] should know, such as how to set up a Riak cluster, configure some values, reading logs, and more.
+In my opinion, the most important section of this book is the [[concepts|A Little Riak Book: Concepts]] chapter. If you already have a little knowledge it may start slow, but it picks up in a hurry. After laying the theoretical groundwork, we'll move onto helping [[developers|A Little Riak Book: Developers]] use Riak, by learning how to query it and tinker with some settings. Finally, we'll go over the basic details that [[operators|A Little Riak Book: Operators]] should know, such as how to set up a Riak cluster, configure some values, reading logs, and more.
