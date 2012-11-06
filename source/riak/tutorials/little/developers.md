@@ -278,7 +278,10 @@ curl -i -XPUT http://localhost:8098/riak/logs \
 
 Some other values you may have noticed in the bucket's `props` object are `pw`, `pr`, and `dw`.
 
-`pr` and `pw` check for available nodes before a read or a write (the *p* stands for *pre*, as in, *before the action takes place*). The `pw` will ensure that that many nodes are available before attempting to write---if not, no writes will happen. Compare this to `w`, which waits for that many nodes writes to complete, then confirms success or failure afterward.
+`pr` and `pw` ensure that many *primary* nodes are available before a read or write. Riak will read or write from backup nodes if one is unavailable, because of network partition or some other server outage. This `p` prefix will ensure that the 
+
+
+If not, no writes will happen. Compare this to `w`, which waits for that many nodes writes to complete, then confirms success or failure afterward.
 
 Finally `dw` represents the minimal *durable* writes necessary for success. For a normal `w` write to count a write as successful, it merely needs to promise a write has started, even though that write is still in memory, with no guarentee that write has been written to disk, aka, is durable. The `dw` setting represents a minimum number of durable writes necessary to be considered a success. Although a high `dw` value is likely slower than a high `w` value, there are cases where this extra enforcement is good to have, such as dealing with financial data.
 

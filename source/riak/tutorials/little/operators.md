@@ -14,24 +14,16 @@ next: ["Notes", "notes.html"]
 
 <!-- What Riak is famous for is its simplicity to operate and stability at increasing scales. -->
 
-Riak is one of the simplest NoSQL databases to operate. In some ways, it's downright mundane. Want more servers? Add them. A server crash at night? Sleep until morning and fix it.
+Riak is one of the simplest NoSQL databases to operate. In some ways, it's downright
+mundane. Want more servers? Add them. A server crash at night? Sleep until morning and
+fix it. But the fact that it generally hums without a hiccup, does not diminish the
+importance of understanding this integral part of your application stack.
 
-
-### Gossip
-
-The gossip protocol is Riak's way of keeping each node current on the state of the Ring. If a node goes up or down, that information is propgated to other nodes. Periodically, nodes will also send their status to eachother, just for added consistency. Gossiping is an important component for Riak's next feature.
-
-### Hinted Handoff
-
-If a node has been added/removed or moved from offline to online, Riak has to balance the vnodes the same by shuffling them around. This shuffling is called *hinted handoff*, because 1) a vnode has a *hint* on where it should go (this information is gossiped), and 2) the data is handed off (transferred) to its new home.
-
-This means that, although you don't have to do anything when you take a server up/down (or when it returns to the cluster), Riak still has some data to transfer around. Due to it's consistent-hashing style design, this data transfer is as minimal as it can be.
-
-[Hinted handoff is one of the keys to Riak's availability, since requests can continue being served as if a node still operated.]
 
 ## The Ring
 
-Up to this point we've talked conceptually about "clusters" and a the "Ring".
+Up to this point we've talked conceptually about "clusters" and a the "Ring". But what
+exactly do I mean? The Ring in Riak is actually a two-fold thing.
 
 ## Clusters
 
@@ -59,6 +51,22 @@ Up to this point we've talked conceptually about "clusters" and a the "Ring".
 Vertically (by adding bigger hardware), and Horizontally (by adding more nodes).
 
 
+
+
+
+...
+
+### Gossip
+
+The gossip protocol is Riak's way of keeping each node current on the state of the Ring. If a node goes up or down, that information is propgated to other nodes. Periodically, nodes will also send their status to eachother, just for added consistency. Gossiping is an important component for Riak's next feature.
+
+### Hinted Handoff
+
+If a node has been added/removed or moved from offline to online, Riak has to balance the vnodes the same by shuffling them around. This shuffling is called *hinted handoff*, because 1) a vnode has a *hint* on where it should go (this information is gossiped), and 2) the data is handed off (transferred) to its new home.
+
+This means that, although you don't have to do anything when you take a server up/down (or when it returns to the cluster), Riak still has some data to transfer around. Due to it's consistent-hashing style design, this data transfer is as minimal as it can be.
+
+[Hinted handoff is one of the keys to Riak's availability, since requests can continue being served as if a node still operated.]
 
 
 <!--
