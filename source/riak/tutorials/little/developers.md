@@ -14,7 +14,7 @@ next: ["Operators", "operators.html"]
 
 <aside class="sidebar"><h3>A Note on "Node"</h3>
 
-It's worth mentioning that I'll use the word "node" a lot. Realistically, this means a physical/virtual server, but really, the workhorses of Riak are vnodes. 
+It's worth mentioning that I use the word "node" a lot. Realistically, this means a physical/virtual server, but really, the workhorses of Riak are vnodes. 
 
 When you write to multiple vnodes, Riak will attempt to spread values to as many physical servers as possible. However, this isn't guarenteed (for example, if you have 64 vnodes, and only two physical ones, setting replication to 5 is perfectly fine, if not a bit redundant). You're safe conceptualizing nodes as Riak instances, and it's simpler than qualifying "vnode" all the time. If someting applies specifically to a vnode, I'll mention it.
 </aside>
@@ -278,10 +278,7 @@ curl -i -XPUT http://localhost:8098/riak/logs \
 
 Some other values you may have noticed in the bucket's `props` object are `pw`, `pr`, and `dw`.
 
-`pr` and `pw` ensure that many *primary* nodes are available before a read or write. Riak will read or write from backup nodes if one is unavailable, because of network partition or some other server outage. This `p` prefix will ensure that the 
-
-
-If not, no writes will happen. Compare this to `w`, which waits for that many nodes writes to complete, then confirms success or failure afterward.
+`pr` and `pw` ensure that many *primary* nodes are available before a read or write. Riak will read or write from backup nodes if one is unavailable, because of network partition or some other server outage. This `p` prefix will ensure that only the primary nodes are used, *primary* meaning the vnode which matches the bucket plus N successive vnodes.
 
 Finally `dw` represents the minimal *durable* writes necessary for success. For a normal `w` write to count a write as successful, it merely needs to promise a write has started, even though that write is still in memory, with no guarentee that write has been written to disk, aka, is durable. The `dw` setting represents a minimum number of durable writes necessary to be considered a success. Although a high `dw` value is likely slower than a high `w` value, there are cases where this extra enforcement is good to have, such as dealing with financial data.
 
