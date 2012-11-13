@@ -37,9 +37,19 @@ There are also dozens of other [[project-specific addons|Community Developed Lib
 
 Since Riak is a KV database, the most basic commands are setting and getting values. We'll use the HTTP interface, via curl, but we could just as easily use Erlang, Ruby, Java, or any other supported language.
 
+The most basic structure of a Riak request is setting a value, reading it,
+and maybe eventually deleting it. The actions are related to HTTP methods
+(PUT, GET, POST, DELETE).
+
+```bash
+PUT    /riak/bucket/key
+GET    /riak/bucket/key
+DELETE /riak/bucket/key
+```
+
 #### PUT
 
-The simplest write command in Riak is putting a value. It requires a key, value, and a bucket. The HTTP interface uses the basic REST methods (PUT, GET, POST, DELETE), which in curl are prefixed with `-X`. Putting the value `pizza` into the key `favorite` under the `food` bucket is like so:
+The simplest write command in Riak is putting a value. It requires a key, value, and a bucket. In curl, all HTTP methods are prefixed with `-X`. Putting the value `pizza` into the key `favorite` under the `food` bucket is like so:
 
 ```bash
 curl -XPUT 'http://localhost:8098/riak/food/favorite' \
