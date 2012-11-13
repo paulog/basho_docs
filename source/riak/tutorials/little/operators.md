@@ -154,6 +154,8 @@ we loop around and continue to exhaust the list.
  {365375409332725729550921208179070754913983135744, 'C@10.0.1.3'}]
 ```
 
+`Ctrl^D`
+
 So what does all this have to do with replication? With the above list, we simply replicate a write
 down the list N times. If we set N=3, then the `food/favorite` object will be written to
 the `D@10.0.1.4` node's partition `5480631...` (I truncated the number here),
@@ -602,10 +604,10 @@ some optional SSL encryption settings.
 
 ### `riak_core`
 
-If any single component could be called "Riak", it would be *Riak Core*. A core
-implementation is responsible for managing the partitioned keyspace, launching
-and supervising vnodes, hinted handoff, and things that aren't related specifically
-to client interfaces, handling requests, or storage.
+If any single component could be called "Riak", it would be *Riak Core*. Core,
+and implementations are responsible for managing the partitioned keyspace, launching
+and supervising vnodes, preference list building, hinted handoff, and things that
+aren't related specifically to client interfaces, handling requests, or storage.
 
 Riak Core config
 
