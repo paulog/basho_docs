@@ -14,11 +14,11 @@ next: ["Notes", "notes.html"]
 
 <!-- What Riak is famous for is its simplicity to operate and stability at increasing scales. -->
 
-Riak is one of the simplest NoSQL databases to operate. In some ways, it's
-downright mundane. Want more servers? Add them. A server crash at night? Sleep
-until morning and fix it. But the fact that it generally hums without a hiccup,
-does not diminish the importance of understanding this integral part of your
-application stack.
+In some ways, Riak is downright mundane in its role as the easiest NoSQL
+database to operate. Want more servers? Add them. A network cable gets cut at
+2am? Sleep until morning and fix it. But the fact that it generally hums without
+a hiccup, does not diminish the importance of understanding this integral part
+of your application stack.
 
 We've covered the core concepts of Riak, and I've provided a taste of how to go
 about using Riak, but there is more to Riak than that. There are details you
@@ -236,7 +236,7 @@ make deps
 make devrel
 for i in {1..5}; do dev/dev$i/bin/riak start; done
 for i in {1..5}; do dev/dev$i/bin/riak ping; done
-for i in {2..5}; do dev/dev$i/bin/riak-admin cluster join dev1@127.0.0.1; done
+for i in {2..5}; do dev/dev$i/bin/riak-admin cluster join A@10.0.1.1; done
 dev/dev1/bin/riak-admin cluster plan
 dev/dev1/bin/riak-admin cluster commit
 You should now have a 5 node cluster running locally.
@@ -262,7 +262,7 @@ cluster, but a few we can look at now.
 
 ```
 $ riak-admin status
-1-minute stats for 'dev1@127.0.0.1'
+1-minute stats for 'A@10.0.1.1'
 -------------------------------------------
 vnode_gets : 0
 vnode_gets_total : 2
@@ -294,7 +294,7 @@ Basho.
 
 ```bash
 ===============================================================================================================================
- 'dev2@127.0.0.1'                                                          04:25:06
+ 'B@10.0.1.2'                                                          04:25:06
  Load:  cpu         0               Memory:  total       19597    binary         97
         procs     562                        processes    4454    code         9062
         runq        0                        atom          420    ets           994
@@ -360,10 +360,10 @@ to remove if from the cluster, but can instead mark it as `down`.
 But before we worry about removing nodes, let's add some first.
 
 ```bash
-$ riak-admin cluster join dev1@127.0.0.1
-Success: staged join request for 'dev2@127.0.0.1' to 'dev1@127.0.0.1'
-$ riak-admin cluster join dev1@127.0.0.1
-Success: staged join request for 'dev3@127.0.0.1' to 'dev1@127.0.0.1'
+$ riak-admin cluster join A@10.0.1.1
+Success: staged join request for 'B@10.0.1.2' to 'A@10.0.1.1'
+$ riak-admin cluster join A@10.0.1.1
+Success: staged join request for 'C@10.0.1.3' to 'A@10.0.1.1'
 ```
 
 <aside class="sidebar"><h3>Don't Wait Too Long</h3>
@@ -390,8 +390,8 @@ $ riak-admin cluster plan
 =============================== Staged Changes ================================
 Action         Nodes(s)
 -------------------------------------------------------------------------------
-join           'dev2@127.0.0.1'
-join           'dev3@127.0.0.1'
+join           'B@10.0.1.2'
+join           'C@10.0.1.3'
 -------------------------------------------------------------------------------
 
 
@@ -404,17 +404,17 @@ NOTE: Applying these changes will result in 1 cluster transition
 ================================= Membership ==================================
 Status     Ring    Pending    Node
 -------------------------------------------------------------------------------
-valid     100.0%     34.4%    'dev1@127.0.0.1'
-valid       0.0%     32.8%    'dev2@127.0.0.1'
-valid       0.0%     32.8%    'dev3@127.0.0.1'
+valid     100.0%     34.4%    'A@10.0.1.1'
+valid       0.0%     32.8%    'B@10.0.1.2'
+valid       0.0%     32.8%    'C@10.0.1.3'
 -------------------------------------------------------------------------------
 Valid:3 / Leaving:0 / Exiting:0 / Joining:0 / Down:0
 
 WARNING: Not all replicas will be on distinct nodes
 
 Transfers resulting from cluster changes: 42
-  21 transfers from 'dev1@127.0.0.1' to 'dev3@127.0.0.1'
-  21 transfers from 'dev1@127.0.0.1' to 'dev2@127.0.0.1'
+  21 transfers from 'A@10.0.1.1' to 'C@10.0.1.3'
+  21 transfers from 'A@10.0.1.1' to 'B@10.0.1.2'
 ```
 
 Making changes to cluster membership can be fairly resource intensive, so Riak defaults to
@@ -440,7 +440,7 @@ output the status of the service and stop when it's finally up. You can get a li
 `services` through the similarly named command.
 
 ```
-$ riak-admin wait-for-service riak_kv dev3@127.0.0.1
+$ riak-admin wait-for-service riak_kv C@10.0.1.3
 riak_kv is not up: []
 riak_kv is not up: []
 riak_kv is up
@@ -451,8 +451,8 @@ on the state of the ring, it will output `FALSE`, otherwise `TRUE`.
 
 ```
 $ riak-admin ringready
-TRUE All nodes agree on the ring ['dev1@127.0.0.1','dev2@127.0.0.1',
-                                  'dev3@127.0.0.1']
+TRUE All nodes agree on the ring ['A@10.0.1.1','B@10.0.1.2',
+                                  'C@10.0.1.3']
 ```
 
 For a more complete view of the status of the nodes in the ring, you can check out `member-status`.
@@ -462,9 +462,9 @@ $ riak-admin member-status
 ================================= Membership ==================================
 Status     Ring    Pending    Node
 -------------------------------------------------------------------------------
-valid      34.4%      --      'dev1@127.0.0.1'
-valid      32.8%      --      'dev2@127.0.0.1'
-valid      32.8%      --      'dev3@127.0.0.1'
+valid      34.4%      --      'A@10.0.1.1'
+valid      32.8%      --      'B@10.0.1.2'
+valid      32.8%      --      'C@10.0.1.3'
 -------------------------------------------------------------------------------
 Valid:3 / Leaving:0 / Exiting:0 / Joining:0 / Down:0
 ```
@@ -476,7 +476,7 @@ to show what it might look like.
 ```bash
 $ riak-admin ring-status
 ================================== Claimant ===================================
-Claimant:  'dev1@127.0.0.1'
+Claimant:  'A@10.0.1.1'
 Status:     up
 Ring Ready: true
 
@@ -490,7 +490,7 @@ Index: 182687704666362864775460604089535377456991567872
 ...
 
 ============================== Unreachable Nodes ==============================
-The following nodes are unreachable: ['dev3@127.0.0.1']
+The following nodes are unreachable: ['C@10.0.1.3']
 
 WARNING: The cluster state will not converge until all nodes
 are up. Once the above nodes come back online, convergence
@@ -553,145 +553,500 @@ with them on your own installation.
 
 ## How Riak is Built
 
-It's hard to call Riak a single project. It's probably more correct to think of
-Riak as the center of gravity for a whole system of projects. As we've gone over
-before, Riak is built on Erlang, but that's not quite correct either. It's better
+It's difficult to label Riak a single project. It's probably more correct to think of
+Riak as the center of gravity for a whole system of projects. As we've covered
+before, Riak is built on Erlang, but that's not the whole story. It's more correct
 to say Riak is fundamentally Erlang, with some pluggable native C code components
 (like leveldb), Java (Yokozuna), and even JavaScript (for Mapreduce or commit hooks).
 
+![Tech Stack](/images/little/riak-stack.svg)
+
+The way Riak stacks technologies is a good thing to keep in mind, in order to make
+sense of how to configure it properly.
+
 ### Erlang
 
-When you start up a Riak node, it also starts up an Erlang VM (virtual machine) to run
-and manage Riak's processes, including vnodes, process messages, gossips, resource
-management and more. The running Riak operating system process is found as a `beam.smp`
+<img src="/images/little/riak-stack-erlang.svg" style="float:right" />
+
+When you fire up a Riak node, it also starts up an Erlang VM (virtual machine) to run
+and manage Riak's processes. These include vnodes, process messages, gossips, resource
+management and more. The Erlang operating system process is found as a `beam.smp`
 command with many, many arguments.
 
-```
-$ ps -o command | grep beam
-/riak/erts-5.9.1/bin/beam.smp -K true -A 64 -W w -- -root /riak \
--progname riak -- -home /Users/ericredmond -- \
--boot /riak/releases/1.2.1/riak -embedded -config /riak/etc/app.config \
--pa ./lib/basho-patches -name dev4@127.0.0.1 -setcookie testing123 -- console
-```
-
-Those arguments are configured through the `etc/vm.args` file. There are a couple
+These arguments are configured through the `etc/vm.args` file. There are a couple
 setting you should pay special attention to.
+
+```bash
+$ ps -o command | grep beam
+/riak/erts-5.9.1/bin/beam.smp \
+-K true \
+-A 64 \
+-W w -- \
+-root /riak \
+-progname riak -- \
+-home /Users/ericredmond -- \
+-boot /riak/releases/1.2.1/riak \
+-embedded \
+-config /riak/etc/app.config \
+-pa ./lib/basho-patches \
+-name A@10.0.1.1 \
+-setcookie testing123 -- \
+console
+```
 
 The `name` setting is the name of the current Riak node. Every node in your cluster
 needs a different name. It should have the IP address or dns name of the server
 this node runs on, and optionally a different prefix---though some people just like
-to call it riak for simplicity (eg: `riak@node15.myhost`).
+to name it *riak* for simplicity (eg: `riak@node15.myhost`).
 
-The `setcookie` setting is a setting for Erlang to perform inter process
-communication across nodes. Every node in the cluster needs to have the same
+The `setcookie` parameter is a setting for Erlang to perform inter-process
+communication (IPC) across nodes. Every node in the cluster must have the same
 cookie name. I recommend you change the name from `riak` to something a little
 less likely to accidentally conflict, like `hihohihoitsofftoworkwego`.
 
-My `vm.args` looks like this:
+My `vm.args` starts with this:
 
 ```
 ## Name of the riak node
--name dev1@127.0.0.1
+-name A@10.0.1.1
 
 ## Cookie for distributed erlang.  All nodes in the same cluster
 ## should use the same cookie or they will not be able to communicate.
 -setcookie testing123
 ```
 
-Continuing down the `vm.args` file are more erlang settings, some environment
+Continuing down the `vm.args` file are more Erlang settings, some environment
 variables that are set up for the process (prefixed by `-env`), followed by
 some optional SSL encryption settings.
 
 ### `riak_core`
 
-If any single component could be called "Riak", it would be *Riak Core*. Core,
-and implementations are responsible for managing the partitioned keyspace, launching
-and supervising vnodes, preference list building, hinted handoff, and things that
-aren't related specifically to client interfaces, handling requests, or storage.
+<img src="/images/little/riak-stack-core.svg" style="float:right" />
 
-Riak Core config
+If any single component deserves the title of "Riak proper", it would be
+*Riak Core*. Core, and implementations are responsible for managing the
+partitioned keyspace, launching and supervising vnodes, preference list
+building, hinted handoff, and things that aren't related specifically to
+client interfaces, handling requests, or storage.
+
+Riak Core, like any project, has some hard coded values (for exmaple, how
+protocol buffer messages are encoded in binary). However, many values
+can be modified to fit your use-case. The majority of this configuration
+occurs under `app.config`. This file is Erlang code, so commented lines
+begin with a `%` character.
+
+The `riak_core` configuration section allows you to change the options in
+this project. This handles basic settings, like files/directories where
+values are stored or to be written to, the number of partitions/vnodes
+in the cluster (`ring_creation_size`), and several port options.
+
+```erlang
+%% Riak Core config
+{riak_core, [
+    %% Default location of ringstate
+    {ring_state_dir, "./data/ring"},
+
+    %% Default ring creation size.  Make sure it is a power of 2,
+    %% e.g. 16, 32, 64, 128, 256, 512 etc
+    %{ring_creation_size, 64},
+
+    %% http is a list of IP addresses and TCP ports that the Riak
+    %% HTTP interface will bind.
+    {http, [ {"127.0.0.1", 8098 } ]},
+
+    %% https is a list of IP addresses and TCP ports that the Riak
+    %% HTTPS interface will bind.
+    %{https, [{ "127.0.0.1", 8098 }]},
+
+    %% Default cert and key locations for https can be overridden
+    %% with the ssl config variable, for example:
+    %{ssl, [
+    %       {certfile, "./etc/cert.pem"},
+    %       {keyfile, "./etc/key.pem"}
+    %      ]},
+
+    %% riak handoff_port is the TCP port that Riak uses for
+    %% intra-cluster data handoff.
+    {handoff_port, 8099 },
+
+    %% To encrypt riak_core intra-cluster data handoff traffic,
+    %% uncomment the following line and edit its path to an
+    %% appropriate certfile and keyfile.  (This example uses a
+    %% single file with both items concatenated together.)
+    {handoff_ssl_options, [{certfile, "/tmp/erlserver.pem"}]},
+
+    %% Platform-specific installation paths
+    {platform_bin_dir, "./bin"},
+    {platform_data_dir, "./data"},
+    {platform_etc_dir, "./etc"},
+    {platform_lib_dir, "./lib"},
+    {platform_log_dir, "./log"}
+]},
+```
 
 ### `riak_kv`
 
-Riak KV is the Key/Value implementation of Riak Core. This is where much of the
-actual work happens, handling requests, coordinating them for redundancy and
-read repair. It's what makes the Riak as we know a KV store rather than something
-else, like a Cassandra-style columnar datastore.
+<img src="/images/little/riak-stack-kv.svg" style="float:right" />
 
-Riak KV config
+Riak KV is the Key/Value implementation of Riak Core. This is where the magic
+happens, such as handling requests, coordinating them for redundancy and read
+repair. It's what makes the Riak, as we know it, a KV store rather than something
+else like a Cassandra-style columnar datastore.
+
+<!-- When configuring KV, you may scratch your head about about when a setting belongs
+under `riak_kv` versus `riak_core`. For example, if `http` is under core, why
+is raw_name under riak. -->
+
+HTTP access to KV defaults to the `/riak` path as we've seen in examples
+throughout the book. This prefix is editable via `raw_name`. Many of the
+other KV settings are concerned with backward compatability modes,
+backend settings, mapreduce, and javascript integration.
+
+```erlang
+{riak_kv, [
+  %% raw_name is the first part of all URLS used by the Riak raw HTTP
+  %% interface.  See riak_web.erl and raw_http_resource.erl for details.
+  {raw_name, "riak"},
+
+  %% http_url_encoding determines how Riak treats URL encoded
+  %% buckets, keys, and links over the REST API. When set to 'on'
+  %% Riak always decodes encoded values sent as URLs and Headers.
+  %% Otherwise, Riak defaults to compatibility mode where links
+  %% are decoded, but buckets and keys are not. The compatibility
+  %% mode will be removed in a future release.
+  {http_url_encoding, on},
+
+  %% Switch to vnode-based vclocks rather than client ids.  This
+  %% significantly reduces the number of vclock entries.
+  {vnode_vclocks, true},
+
+  %% This option toggles compatibility of keylisting with 1.0
+  %% and earlier versions.  Once a rolling upgrade to a version
+  %% > 1.0 is completed for a cluster, this should be set to true
+  %% for better control of memory usage during key listing operations
+  {listkeys_backpressure, true}
+
+  ...
+]},
+```
+
+### `riak_pipe`
+
+<img src="/images/little/riak-stack-pipe.svg" style="float:right" />
+
+Riak pipe is an input/output messaging system that forms the basis of Riak's
+mapreduce. This was not always the case, and MR used to be a dedicated
+implementation, hence some legacy options. Like the ability to alter the KV
+path, you can also change HTTP from `/mapred` to a custom path.
+
+```erlang
+{riak_kv, [
+  ...
+  %% mapred_name is URL used to submit map/reduce requests to Riak.
+  {mapred_name, "mapred"},
+
+  %% mapred_system indicates which version of the MapReduce
+  %% system should be used: 'pipe' means riak_pipe will
+  %% power MapReduce queries, while 'legacy' means that luke
+  %% will be used
+  {mapred_system, pipe},
+
+  %% mapred_2i_pipe indicates whether secondary-index
+  %% MapReduce inputs are queued in parallel via their own
+  %% pipe ('true'), or serially via a helper process
+  %% ('false' or undefined).  Set to 'false' or leave
+  %% undefined during a rolling upgrade from 1.0.
+  {mapred_2i_pipe, true},
+
+  %% directory used to store a transient queue for pending
+  %% map tasks
+  %% Only valid when mapred_system == legacy
+  %% {mapred_queue_dir, "./data/mr_queue" },
+
+  %% Number of items the mapper will fetch in one request.
+  %% Larger values can impact read/write performance for
+  %% non-MapReduce requests.
+  %% Only valid when mapred_system == legacy
+  %% {mapper_batch_size, 5},
+
+  %% Number of objects held in the MapReduce cache. These will be
+  %% ejected when the cache runs out of room or the bucket/key
+  %% pair for that entry changes
+  %% Only valid when mapred_system == legacy
+  %% {map_cache_size, 10000},
+```
+
+#### Javascript
+
+Though not implemented in pipe, Riak KV's mapreduce implementation is the
+primary user of the Spidermonkey JavaScript engine---the second use is
+precommit hooks.
+
+```
+{riak_kv, [
+  ...
+  %% Each of the following entries control how many Javascript
+  %% virtual machines are available for executing map, reduce,
+  %% pre- and post-commit hook functions.
+  {map_js_vm_count, 8 },
+  {reduce_js_vm_count, 6 },
+  {hook_js_vm_count, 2 },
+
+  %% js_max_vm_mem is the maximum amount of memory, in megabytes,
+  %% allocated to the Javascript VMs. If unset, the default is
+  %% 8MB.
+  {js_max_vm_mem, 8},
+
+  %% js_thread_stack is the maximum amount of thread stack, in megabyes,
+  %% allocate to the Javascript VMs. If unset, the default is 16MB.
+  %% NOTE: This is not the same as the C thread stack.
+  {js_thread_stack, 16},
+
+  %% js_source_dir should point to a directory containing Javascript
+  %% source files which will be loaded by Riak when it initializes
+  %% Javascript VMs.
+  %{js_source_dir, "/tmp/js_source"},
+```
+
+### `yokozuna`
+
+<img src="/images/little/riak-stack-yokozuna.svg" style="float:right" />
+
+Yokozuna is the newest addition to the Riak ecosystem. It's an integration of
+the distributed Solr search engine into Riak, and provides some extensions
+for extracting, indexing, and tagging documents. The Solr server runs its
+own HTTP interface, and though your Riak users should never have to access
+it, you can choose which `solr_port` will be used.
+
+```erlang
+{yokozuna, [
+  {solr_port, "8093"},
+  {yz_dir, "./data/yz"}
+]}
+```
 
 ### `bitcask`, `eleveldb`, `memory`, `multi`
+
+<img src="/images/little/riak-stack-backend.svg" style="float:right" />
 
 Several modern databases have swappable backends, and Riak is no different in that
 respect. Riak currently supports three different storage engines---*Bitcask*,
 *eLevelDB*, and *Memory*---and one hybrid called *Multi*.
 
+Using a backend is simply a matter of setting the `storage_backend` with one of the following values.
 
-Backend config
+- `riak_kv_bitcask_backend` - The catchall Riak backend. If you don't have
+  a compelling reason to *not* use it, this is my suggestion.
+- `riak_kv_eleveldb_backend` - A Riak-friendly backend which uses Google's
+  leveldb. This is necessary if you have too many keys to fit into memory, or
+  wish to use 2i.
+- `riak_kv_memory_backend` - A main-memory backend, with time-to-live (TTL). Meant
+  for transient data.
+- `riak_kv_multi_backend` - Any of the above backends, chosen on a per-bucket
+  basis.
 
-riak_kv_bitcask_backend
-riak_kv_eleveldb_backend
-riak_kv_memory_backend
-riak_kv_multi_backend
+
+```erlang
+{riak_kv, [
+  %% Storage_backend specifies the Erlang module defining the storage
+  %% mechanism that will be used on this node.
+  {storage_backend, riak_kv_memory_backend},
+  ...
+]},
+```
+
+Then, with the exception of Multi, each memory configuration is under one of
+the following options.
+
+```erlang 
+%% Memory Config
+{memory_backend, [
+  {max_memory, 4096}, %% 4GB in megabytes
+  {ttl, 86400}  %% 1 Day in seconds
+]}
+
+%% Bitcask Config
+{bitcask, [
+  {data_root, "./data/bitcask"},
+  {open_timeout, 4}, %% Wait time to open a keydir (in seconds)
+  {sync_strategy, {seconds, 60}}  %% Sync every 60 seconds
+]},
+
+%% eLevelDB Config
+{eleveldb, [
+  {data_root, "./data/leveldb"},
+  {write_buffer_size_min, 31457280 }, %% 30 MB in bytes
+  {write_buffer_size_max, 62914560}, %% 60 MB in bytes
+  {max_open_files, 20}, %% Maximum number of files open at once per partition
+  {cache_size, 8388608} %% 8MB default cache size per-partition
+]},
+```
+
+With the Multi backend, you can even choose different different backends
+for different buckets. This can make sense, as one bucket may hold
+user information that you wish to index (use eleveldb), while another
+bucket holds volatile session information that you may prefer to simply
+remain resident (use memory).
+
+```erlang
+{riak_kv, [
+  ...
+  %% Storage_backend specifies the Erlang module defining the storage
+  %% mechanism that will be used on this node.
+  {storage_backend, riak_kv_multi_backend},
+
+  %% Choose one of the names you defined below
+  {multi_backend_default, <<"bitcask_multi">>},
+
+  {multi_backend, [
+    %% Here's where you set the individual backends
+    {<<"bitcask_multi">>,  riak_kv_bitcask_backend, [
+      %% bitcask configuration
+      {config1, ConfigValue1},
+      {config2, ConfigValue2}
+    ]},
+    {<<"memory_multi">>,   riak_kv_memory_backend, [
+      %% memory configuration
+      {max_memory, 8192}   %% 8GB
+    ]}
+  ]},
+]},
+```
+
+You can put the `memory_multi` configured above to the `session_data` bucket
+by just setting its `backend` property.
+
+```bash
+$ curl -XPUT http://riaknode:8098/riak/session_data \
+  -H "Content-Type: application/json" \
+  -d '{"props":{"backend":"memory_multi"}}'
+```
 
 ### `riak_api`
+
+<img src="/images/little/riak-stack-api.svg" style="float:right" />
 
 So far, all of the components we've seen have been inside the Riak house. The API
 is the front door. *In a perfect world*, the API would manage two implementations:
 Protocol buffers (PB), an efficient binary protocol framework designed by Google;
 and HTTP. Unfortunately the HTTP client interface is not yet ported, leaving only
-PB for now---though I like to think of this as merely an implementation detail,
-soon unraveled from KV.
+PB for now---though I like to cosider this as a mere implementation detail, to be
+unraveled from KV soon, and conceptually seperated now.
 
 In any case, Riak API represents the client facing aspect of Riak. Implementations
 handle how data is encoded and transfered, and this project handles the services
 for presenting those interfaces, managing connections, providing entry points.
 
 
-API config
+```erlang
+%% Riak Client APIs config
+{riak_api, [
+  %% pb_backlog is the maximum length to which the queue of pending
+  %% connections may grow. If set, it must be an integer >= 0.
+  %% By default the value is 5. If you anticipate a huge number of
+  %% connections being initialised *simultaneously*, set this number
+  %% higher.
+  %% {pb_backlog, 64},
 
-### `riak_pipe`
+  %% pb_ip is the IP address that the Riak Protocol Buffers interface
+  %% will bind to.  If this is undefined, the interface will not run.
+  {pb_ip,   "127.0.0.1" },
 
-Riak pipe config
+  %% pb_port is the TCP port that the Riak Protocol Buffers interface
+  %% will bind to
+  {pb_port, 8087 }
+]},
+```
 
 ### Other projects
 
 Other projects add depth to Riak, though aren't strictly necessary, in a
 functional sense. Two of these projects are Lager, Riak's chosen logging
-system; and Sysmon, a useful system monitor.
+system; and Sysmon, a useful system monitor. They both have meaningful
+defaults, and are also have well documented settings at with their repository
+docs
 
+* [https://github.com/basho/lager](https://github.com/basho/lager)
+* [https://github.com/basho/riak_sysmon](https://github.com/basho/riak_sysmon)
 
-More config
+```erlang
+%% Lager Config
+{lager, [
+  %% What handlers to install with what arguments
+  %% If you wish to disable rotation, you can either set the size to 0
+  %% and the rotation time to "", or instead specify a 2-tuple that only
+  %% consists of {Logfile, Level}.
+  {handlers, [
+    {lager_file_backend, [ 
+      {"./log/error.log", error, 10485760, "$D0", 5}, 
+      {"./log/console.log", info, 10485760, "$D0", 5} 
+    ]} 
+  ]},
 
-`lager`, `riak_sysmon`
+  %% Whether to write a crash log, and where.
+  %% Commented/omitted/undefined means no crash logger.
+  {crash_log, "./log/crash.log"},
+  
+  ...
+  
+  %% Whether to redirect error_logger messages into lager - defaults to true
+  {error_logger_redirect, true}
+]},
+```
 
-## Setups
+```erlang
+%% riak_sysmon config
+{riak_sysmon, [
+  %% To disable forwarding events of a particular type, set 0
+  {process_limit, 30},
+  {port_limit, 2},
 
+  %% Finding reasonable limits for a given workload is a matter
+  %% of experimentation.
+  {gc_ms_limit, 100},
+  {heap_word_limit, 40111000},
 
+  %% Configure the following items to 'false' to disable logging
+  %% of that event type.
+  {busy_port, true},
+  {busy_dist_port, true}
+]},
+```
 
-### Secondary Indexing (2i)
+### Backward Incompatability
 
-<!-- riak_kv_eleveldb_backend -->
+Riak is a project in evolution. And as such, it has a lot of projects that have
+been created, but over time are being replaced with newer versions. Obviously
+this baggage can be confounding if you are just learning Riak---especially as
+you run across deprecated configuration, or documentation.
 
-<!-- How it works -->
-<!-- http://docs.basho.com/riak/latest/tutorials/querying/Secondary-Indexes/ -->
-
-### MapReduce
-
-<!-- ## Configuration Notes -->
-
-<!-- ## Reading Logs -->
-
-### Search (Yokozuna)
+- InnoDB - The MySQL engine once supported by Riak, but now deprecated.
+- Luke - The legacy mapreduce implementation replaced by Riak Pipe.
+- Search - The search implementation replaced by Yokozuna.
+- Merge Index - The backend created for the legacy Riak Search.
+- SASL - A logging engine improved by Lager.
 
 
 ## Tools
 
 ### Riaknostic
 
+Riaknostic is a diagnostic tool for Riak, meant to run a suite of checks against
+an installation to discover potential problems. If it finds any, it also
+recommends potential resolutions.
+
+Riaknostic exists seperately from the core project, but is meant to be
+downloaded and integrated with an installation.
+
+http://riaknostic.basho.com/
+
+
+
 ### Riak Control
 
-## Scaling Riak
+<!-- ## Scaling Riak
 
 Vertically (by adding bigger hardware), and Horizontally (by adding more nodes).
+ -->
 
+## Wrapup
