@@ -931,7 +931,10 @@ is the front door. *In a perfect world*, the API would manage two implementation
 Protocol buffers (PB), an efficient binary protocol framework designed by Google;
 and HTTP. Unfortunately the HTTP client interface is not yet ported, leaving only
 PB for now---though I like to cosider this as a mere implementation detail, to be
-unraveled from KV soon, and conceptually seperated now.
+unraveled from KV soon.
+
+But because they are not yet seperated, only PB is configured under `riak_api`,
+while HTTP still remains under KV.
 
 In any case, Riak API represents the client facing aspect of Riak. Implementations
 handle how data is encoded and transfered, and this project handles the services
@@ -1031,6 +1034,9 @@ you run across deprecated configuration, or documentation.
 
 ### Riaknostic
 
+You may recall that we skipped the `diag` command while looking through
+`riak-admin`, but it's time to circle back around.
+
 Riaknostic is a diagnostic tool for Riak, meant to run a suite of checks against
 an installation to discover potential problems. If it finds any, it also
 recommends potential resolutions.
@@ -1040,9 +1046,42 @@ downloaded and integrated with an installation.
 
 http://riaknostic.basho.com/
 
+```bash
+$ wget https://github.com/basho/riaknostic/downloads/riaknostic-1.0.2.tar.gz -P /tmp
+$ cd /riak/lib
+$ tar xzvf /tmp/riaknostic-1.0.2.tar.gz
+```
+
+That's all you need to do to access your buffet of options.
+
+```bash
+$ riak-admin diag --list
+Available diagnostic checks:
+
+  disk                 Data directory permissions and atime
+  dumps                Find crash dumps
+  memory_use           Measure memory usage
+  nodes_connected      Cluster node liveness
+  ring_membership      Cluster membership validity
+  ring_preflists       Check ring satisfies n_val
+  ring_size            Ring size valid
+  search               Check whether search is enabled on all nodes
+```
+
+I'm a bit concerned that my disk might be slow, so I ran the `disk` diagnostic.
+
+```bash
+$ riak-admin diag disk
+21:52:47.353 [notice] Data directory /riak/data/bitcask is not mounted with 'noatime'. Please remount its disk with the 'noatime' flag to improve performance.
+```
+
+Riaknostic returns an analysis and suggestion for improvement. Had my disk
+configuration been ok, the command would have returned nothing.
 
 
 ### Riak Control
+
+
 
 <!-- ## Scaling Riak
 
