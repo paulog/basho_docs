@@ -35,7 +35,7 @@ Riak をソースからビルドするには、Erlang R15B01 以降が必要で�
 Riak をコピーしました。それではビルドしましょう。`riak` ディレクトリに行き、`make all` を実行してください。
 
 ```bash
-$ cd riak-1.2.0
+$ cd riak-1.2.1
 $ make all
 ```
 
@@ -58,7 +58,7 @@ $ cd dev; ls
 次のようになるはずです。
 
 ```bash
-dev1       dev2       dev3       dev4  
+dev1       dev2       dev3       dev4
 ```
 
 `dev` で始まる各ディレクトリは、Riak ノードを含む完全なパッケージです。各ノードを動かす必要があります。`dev1` を動かしましょう。

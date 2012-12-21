@@ -37,7 +37,7 @@ format_and_insert(Line) ->
 
 
 ```bash
-$ chmod +x load_data
+$ chmod +x load_data.erl
 ```
 
 下記のリンクから株式データの CSV ファイルをダウンロードし、"dev" ディレクトリに置き、使えるようにします。
@@ -49,7 +49,7 @@ $ chmod +x load_data
 データを Riak にロードします。
 
 ```bash
-$ ./load_data goog.csv
+$ ./load_data.erl goog.csv
 ```
 
 これで Riak クラスタにデータが格納されました。ちょっと脇道にそれて、MapReduce について、さらに Riak がそれをどのように使うかについて軽くおさらいしましょう。
@@ -171,9 +171,7 @@ MapReduce ジョブをご覧いただきました。次はあなたが自分で�
 
 <div class="info"><div class="title">シェル上で [[MapReduce]] クエリを投げる</div>シェル上でクエリを実行するために、ここでは curl コマンドを使います:
 
-```bash
-curl -X POST http://127.0.0.1:8091/mapred -H "Content-Type: application/json" -d @-
-```
+<div class="code"><pre>curl -XPOST http://127.0.0.1:8091/mapred -H "Content-Type: application/json" -d @-</pre></div>
 
 RETURN を押してから、ジョブをペーストしてください。たとえば下記の "ジョブ完了" セクションの中身です。再度 RETURN を押します。それから Ctrl-D でサブミットします。この方法による MapReduce クエリは、このチュートリアルのためだけでなく、とても簡単なので、コマンドラインから使う使い捨てのクエリとして利用できます。クライアントライブラリを使えば、Riak に投げるために JSON を組み立てるなどの泥臭い仕事は代わりにやってもらえます。</div>
 

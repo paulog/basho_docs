@@ -10,9 +10,9 @@ require './lib/sitemap_render_override'
 
 if ENV['RIAK_VERSION'].blank? || ENV['RIAK_VERSION'] !~ /[\d\.]+/
   versions = YAML::load(File.open('data/versions.yml'))
-  for proj, vs in versions
+  for proj, vs in versions['currents']
     proj = proj.upcase
-    ENV["#{proj}_VERSION"] = vs.last.last
+    ENV["#{proj}_VERSION"] = vs
     puts "#{proj}_VERSION=#{ENV["#{proj}_VERSION"]}"
   end
 end
@@ -176,6 +176,7 @@ helpers do
   def current_projects()
     projects = {}
     data.versions.each do |project, versions|
+      next if project == 'currents'
       projects[project] = {
         :deployment => $versions[project.to_sym],
         :latest => versions.last.last
@@ -235,7 +236,7 @@ helpers do
     build_breadcrumbs(data.global_nav[project], page_key)
   end
 
-  def build_nav(section, depth=1)
+  def build_nav(section, c_name='', depth=1)
     active = false
     nav = ''
     section.each do |sub|
@@ -245,7 +246,7 @@ helpers do
         active ||= current_link
         nav += "<li#{current_link ? ' class="active current"' : ''}>#{sub}</li>"
       else
-        nested, sub_active = build_nav(sub['sub'], depth+1)
+        nested, sub_active = build_nav(sub['sub'], c_name, depth+1)
         link_data = wiki_to_link(sub['title'])
         current_link = link_data[:url] == current_page.url
         active ||= sub_active || current_link
@@ -254,7 +255,7 @@ helpers do
         nav += "<li#{active_class}><h4#{current_class}><span>#{sub['title']}</span></h4>#{nested}</li>"
       end
     end
-    nav = "<ul class=\"depth-#{depth} #{active ? 'active' : ''}\">" + nav + "</ul>"
+    nav = "<ul class=\"depth-#{depth} #{c_name}#{active ? ' active' : ''}\">" + nav + "</ul>"
     [nav, active]
   end
 

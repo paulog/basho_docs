@@ -112,7 +112,7 @@ Riak 設定のためにいくつかすることがあります。`/etc/riak/app.
 
 このようにします。
 
-    {add_paths, ["/usr/lib64/riak-cs/lib/riak_moss-1.0.1/ebin"]},
+    {add_paths, ["/usr/lib64/riak-cs/lib/riak_cs-1.2.2/ebin"]},
     {storage_backend, riak_cs_kv_multi_backend},
     {multi_backend_prefix_list, [{<<"0b:">>, be_blocks}]},
     {multi_backend_default, be_default},
@@ -125,10 +125,6 @@ Riak 設定のためにいくつかすることがあります。`/etc/riak/app.
             {data_root, "/var/lib/riak/bitcask"}
         ]}
     ]},
-
-`app.config` の **riak_core** セクションにこれを追加します:
-
-    {default_bucket_props, [{allow_mult, true}]},
 
 app.config ファイルにインタフェース IP アドレスを設定します。プロダクション環境では、複数の NIC を使っていることでしょうが、今はテストクラスタだけなので、10.0.2.10 という IP アドレスの NIC が1台だけだと仮定します。
 
@@ -145,18 +141,18 @@ app.config ファイルにインタフェース IP アドレスを設定しま�
 
 `/etc/riak-cs/app.config` の次の行を変更します。
 
-    {moss_ip, "127.0.0.1"}
+    {cs_ip, "127.0.0.1"}
     {riak_ip, "127.0.0.1"}
     {stanchion_ip, "127.0.0.1"}
 
 このようにします。
 
-	{moss_ip, "10.0.2.10"}
+    {cs_ip, "10.0.2.10"}
     {riak_ip, "10.0.2.10"}
     {stanchion_ip, "10.0.2.10"}
 
 
-Riak CS に全てのインタフェースをリッスンさせたいのであれば、moss_ip を 0.0.0.0 にしても構いません。
+Riak CS に全てのインタフェースをリッスンさせたいのであれば、cs_ip を 0.0.0.0 にしても構いません。
 
 
 `/etc/stanchion/app.config` の次の行を変更します。
@@ -230,7 +226,7 @@ riak-cs ping
 管理ユーザを作成するために、新しいユーザを "anonymous" ユーザとして作成し、パーミッションを与えます。
 この設定には Riak CS のノードが 1 つだけ必要です。
 
-`/etc/riak-cs/app.config` の `{moss_ip, ...}` のすぐ前に次のエントリを追加します。
+`/etc/riak-cs/app.config` の `{cs_ip, ...}` のすぐ前に次のエントリを追加します。
 
     {anonymous_user_creation, true},
 
